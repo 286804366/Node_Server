@@ -27,7 +27,7 @@ const server = require('dgram').createSocket({
   reuseAddr: true,
 })
 server.bind(4000, () => {
-  subprocess.send('server', server)
+  subprocess.send('udp', server)
 })
 // server.on('message', (msg,rinfo) => {
 //   console.log('收到数据')
