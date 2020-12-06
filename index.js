@@ -27,12 +27,17 @@ const server = require('dgram').createSocket({
   reuseAddr: true,
 })
 server.bind(4000, () => {
-  subprocess.send('udp', server)
+  // subprocess.send('udp', server)
 })
-// server.on('message', (msg,rinfo) => {
-//   console.log('收到数据')
-//   server.send(msg.toString(), rinfo.port, rinfo.address, () => {})
-// })
+server.on('message', (msg,rinfo) => {
+  console.log('收到数据')
+  server.send(msg.toString(), rinfo.port, rinfo.address, () => {})
+})
+server.on('listening', () => {
+  const address = server.address()
+  console.log(`udp 服务器监听 ${address.address}:${address.port}`)
+})
+
 
 // const workers = {}
 
