@@ -23,6 +23,7 @@ function openUdpServer(udpServer) {
     // console.log(dat.toString())
     // arr.push(Array(~~Math.random() * 1000).fill('sss'.repeat(100)))
     console.log(`<子进程${worker.id}>：收到udp请求 >>>: ${msg.toString()}`)
+    console.log(`<子进程${worker.id}>：请求地址 ${rinfo.address}:${rinfo.port}`)
     // setInterval(()=>{
     udpServer.send(
       Buffer.from(Math.ceil(Math.random() * 100) + ''),
