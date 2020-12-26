@@ -1,57 +1,112 @@
-// const dgram = require('dgram')
-// const http = require('http')
-// let info = 's'
-// 创建udp服务器
-// const udpServer = dgram.createSocket({ type: 'udp4', reuseAddr: true })
-// udp 服务器开始监听触发
-// udpServer.on('listening', () => {
-//   const address = udpServer.address()
-//   console.log(`udp 服务器监听 ${address.address}:${address.port}`)
-// })
+/* 子进程 */
 
-// const os = require('os')
-// const cpus = os.cpus()
+const fs = require('fs')
+const path = require('path')
+const recordLog = require('./log.js')
 
-// let cluster = clusters.worker
-process.on('message', (server) => {
-  console.log(arguments);
-  console.log(`工作线程：message :${JSON.stringify(server)}`)
-    // server.on('connection', (socket) => {
-    //   socket.end('由子进程处理');
-    // });
-  // info = server
-  // e.on('message')
+/* 变量定义 */
+
+// 进程最大内存占用
+const MAX_MEMORY_USAGE = 1024 * 1024 * 50
+
+// 子进程
+const worker = {}
+let server = null
+
+/* 处理 */
+// 启动upd服务
+function openUdpServer(udpServer) {
+  // let arr = []
+  server = udpServer
   // udp 服务器绑定端口，并开始监听
+  udpServer.on('message', (msg, rinfo) => {
+    // console.log(dat.toString())
+    // arr.push(Array(~~Math.random() * 1000).fill('sss'.repeat(100)))
+    // console.log(`<子进程${worker.id}>：收到udp请求 >>>: ${msg.toString()}`)
+    // setInterval(()=>{
+    udpServer.send(
+      Buffer.from(Math.ceil(Math.random() * 100) + ''),
+      rinfo.port,
+      rinfo.address,
+      () => {}
+    )
+    // },500)
+  })
+}
 
-})
-process.on('online', (msg) => {
-  console.log(`工作线程：online`)
-})
-process.on('listening', (msg) => {
-  console.log(`工作线程：listening`)
-})
-// 与主进程断开IPC连接触发
-process.on('disconnect', () => {
-  console.log('工作进程:disconnect工作进程已断开连接')
-})
-// 进程发生错误触发
-process.on('error', () => {
-  console.log('工作进程:error工作进程发生错误')
-})
-// 退出工作进程触发
-process.on('exit', (code, signal) => {
-  if (signal) {
-    console.log(`工作进程:exit工作进程已被信号 ${signal} 杀死`)
-  } else if (code !== 0) {
-    console.log(`工作进程:exit工作进程退出，退出码: ${code}`)
-  } else {
-    console.log('工作进程:exit工作进程成功退出')
+/* 子进程事件 */
+
+// 监听主进程传递的【消息】
+process.on('message', (msg, udpServer) => {
+  // console.log(
+  //   `<子进程${worker.id}>：收到主进程消息 >>>: ${JSON.stringify(msg)}`
+  // )
+  // while (1);
+
+  // 记录进程序号，限首次
+  if (!worker.id && msg.id) {
+    worker.id = msg.id
+    openUdpServer(udpServer)
+  }
+
+  // 回应心跳
+  if (msg.state === `ping#${process.pid}`) {
+    // console.log('pong')
+    process.send({ state: `pong#${process.pid}` })
+  }
+
+  console.log(`<子进程${worker.id}>：内存占用 ${process.memoryUsage().rss}`)
+
+  // 内存使用过多，自杀
+  if (process.memoryUsage().rss > MAX_MEMORY_USAGE) {
+    console.log(`<子进程${worker.id}>：内存占用过多，自动退出！`)
+    recordLog(
+      `【子进程】${new Date()}\n内存占用过多 ${(
+        process.memoryUsage().rss /
+        1024 /
+        1024
+      ).toFixed(2)} M\n\n`
+    )
+
+    // 退出进程前，先通知主进程创建新的服务
+    process.send({ act: 'restart' })
+
+    process.exit(1)
   }
 })
+
+// 未知错误 记录日志并退出进程
+process.on('uncaughtException', (err, origin) => {
+  console.log(`<子进程${worker.id}>：发生【错误】!`)
+
+  // 记录日志
+  recordLog(
+    `【子进程】${new Date()}\n捕获的异常: ${err}\n异常的来源: ${origin}\n\n`
+  )
+
+  // 退出进程前，先通知主进程创建新的服务
+  process.send({ act: 'restart' })
+
+  // 关闭当前服务，停止结束连接，关闭后退出进程
+  server.close(() => {
+    // 手动退出
+    process.exit(1)
+  })
+})
+
+// 退出工作进程触发
+// process.on('exit', (code, signal) => {
+//   if (signal) {
+//     console.log(`<子进程${worker.id}>：【退出】被信号 ${signal} 杀死！`)
+//   } else if (code !== 0) {
+//     console.log(`<子进程${worker.id}>：【退出】退出码 ${code}！`)
+//   } else {
+//     console.log(`<子进程${worker.id}>：【正常退出】！`)
+//   }
+// })
 // process.send('8')
 
 // console.log('worker');
-// process.exit(1)
 // http
 //   .createServer((req, res) => {
 //     console.log('http')
@@ -59,15 +114,4 @@ process.on('exit', (code, signal) => {
 //     res.end(JSON.stringify(info))
 //   })
 //   .listen(8888)
-// console.log(cluster.worker);
-// const udpServer = dgram.createSocket({ type: 'udp4', reuseAddr: true })
-// udpServer.on('message', (msg, rinfo) => {
-//   console.log(msg.toString())
-//   udpServer.send('22', 4001, '127.0.0.1', (error) => {
-//     console.log('send')
-//   })
-// })
-// udpServer.on('listening', () => {
-//   console.log(`listening:4000,${cluster.worker.id}`)
-// })
-// udpServer.bind(4000)
+// process.exit(1)
