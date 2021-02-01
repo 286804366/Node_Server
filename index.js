@@ -263,3 +263,39 @@ function createUdpWorker(udpServer) {
 // app.use(async (ctx) => {
 //   ctx.body = info
 // })
+
+
+
+// Depends on tencentcloud-sdk-nodejs version 4.0.3 or higher
+const tencentcloud = require("tencentcloud-sdk-nodejs");
+
+const IotexplorerClient = tencentcloud.iotexplorer.v20190423.Client;
+
+const clientConfig = {
+  credential: {
+    secretId: "AKID0sbPBoqaAe0K5fck4GMLDxY4VJ3cm7mC",
+    secretKey: "scHSSUmm017NO9pKgqpq9Ys7OvVzMXxP",
+  },
+  region: "ap-shanghai",
+  profile: {
+    httpProfile: {
+      endpoint: "iotexplorer.tencentcloudapi.com",
+    },
+  },
+};
+
+const client = new IotexplorerClient(clientConfig);
+const params = {
+    "ActionId": "move_whole",
+    "DeviceName": "test2",
+    "ProductId": "K8LG8U17CW",
+    "InputParams": "{\"angle\":0,\"whole_speed\":0}"
+};
+client.CallDeviceActionAsync(params).then(
+  (data) => {
+    console.log(data);
+  },
+  (err) => {
+    console.error("error", err);
+  }
+);
