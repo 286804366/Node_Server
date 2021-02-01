@@ -56,7 +56,7 @@ process.on('message', (msg, udpServer) => {
     process.send({ state: `pong#${process.pid}` })
   }
 
-  console.log(`<子进程${worker.id}>：内存占用 ${process.memoryUsage().rss}`)
+  //console.log(`<子进程${worker.id}>：内存占用 ${process.memoryUsage().rss}`)
 
   // 内存使用过多，自杀
   if (process.memoryUsage().rss > MAX_MEMORY_USAGE) {
