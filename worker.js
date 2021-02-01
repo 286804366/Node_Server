@@ -42,7 +42,6 @@ process.on('message', (msg, udpServer) => {
   // console.log(
   //   `<子进程${worker.id}>：收到主进程消息 >>>: ${JSON.stringify(msg)}`
   // )
-  // while (1);
 
   // 记录进程序号，限首次
   if (!worker.id && msg.id) {
