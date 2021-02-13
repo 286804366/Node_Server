@@ -411,6 +411,15 @@ let webSocketServer = new ws.Server({
   port: 8889,
 })
 
+// 心跳维持
+let wsInterval = setInterval(function ping() {
+  webSocketServer.clients.forEach(function each(ws) {
+    if (ws.isAlive === false) return ws.terminate()
+    ws.isAlive = false
+    ws.ping(function noop() {})
+  })
+}, 30000)
+
 // 开始监听端口
 // webSocket 服务器开启监听事件
 webSocketServer.on('listening', () => {
@@ -423,6 +432,12 @@ webSocketServer.on('connection', (socket, request) => {
   // console.log(request.headers);
   console.log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
+
+  socket.isAlive = true
+  socket.on('pong', function heartbeat() {
+    this.isAlive = true
+  })
+
   socket.on('message', (str) => {
     console.log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
     socket.send(str)
@@ -437,6 +452,7 @@ webSocketServer.on('connection', (socket, request) => {
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
     webSocket = null
+    clearInterval(wsInterval)
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
     // process.send({ id: worker.id, type: 'WebSocket' })
@@ -605,7 +621,7 @@ router.put('/putProps', async (ctx, next) => {
       DeviceName: body.DeviceName,
       Qos: body.Qos,
       Topic: body.Topic,
-      Payload:body.Payload
+      Payload: body.Payload,
     })
   } catch (error) {}
   console.log(res)
