@@ -4,11 +4,15 @@ const Koa = require('koa')
 const app = new Koa()
 const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
+const staticFiles = require('koa-static')
+
 // 路由前缀
 const router = new Router({
   // 添加路由前缀层级
   prefix: '/',
 })
+process.env.domain =
+  process.env.NODE_ENV == 'production' ? 'wlw.5102it.cn' : 'localhost:4444'
 /* 配置文件 */
 const myConfig = require('./config.js')
 
@@ -524,10 +528,10 @@ router
     console.log(ctx.request.query)
   })
 
-app.use(bodyParser()).use(router.routes()).use(router.allowedMethods())
+app.use(staticFiles(path.resolve(__dirname, "./iotc/"))).use(require('cors')()).use(bodyParser()).use(router.routes()).use(router.allowedMethods())
 
 app.listen(4444, () => {
-  console.log('app is starting at port 4444...')
+  console.log(`HTTP server is listening in ${process.env.domain}`)
 })
 
 // 获取产品属性数据
