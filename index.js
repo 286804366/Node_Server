@@ -436,7 +436,6 @@ webSocketServer.on('connection', (socket, request) => {
   })
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
-    console.log(code.code, reason)
     webSocket = null
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
@@ -532,6 +531,85 @@ router.post('/receive', (ctx, next) => {
   }
 })
 
+// 获取设备所有属性
+router.get('/props/:DeviceName', async (ctx, next) => {
+  try {
+    var res = await getProps({ DeviceName: ctx.params.DeviceName })
+  } catch (error) {}
+  console.log(res)
+  ctx.body = res
+})
+
+// 获取设备单一属性的历史值
+router.get('/historyPropValue/:DeviceName', async (ctx, next) => {
+  try {
+    var res = await getHistoryPropValue({ DeviceName: ctx.params.DeviceName })
+  } catch (error) {}
+  console.log(res)
+  ctx.body = res
+})
+
+// 获取设备详情
+router.get('/deviceDes/:DeviceName', async (ctx, next) => {
+  try {
+    var res = await getDeviceDes({ DeviceName: ctx.params.DeviceName })
+  } catch (error) {}
+  console.log(res)
+  ctx.body = res
+})
+
+// 获取设备列表
+router.get('/deviceList', async (ctx, next) => {
+  try {
+    var res = await getDeviceList({
+      Offset: ctx.query.Offset,
+      Limit: ctx.query.Limit,
+    })
+  } catch (error) {}
+  console.log(res)
+  ctx.body = res
+})
+
+// 调用行为
+router.post('/dispatchAction', async (ctx, next) => {
+  const body = ctx.request.body
+  try {
+    var res = await dispatchAction(
+      {
+        DeviceName: body.DeviceName,
+        ActionId: body.ActionId,
+        InputParams: body.InputParams,
+      },
+      body.isAsync
+    )
+  } catch (error) {}
+  console.log(res)
+  ctx.body = res
+})
+
+// 创建、删除设备
+router.put('/putDevice', async (ctx, next) => {
+  const body = ctx.request.body
+  try {
+    var res = await putDevice({ DeviceName: body.DeviceName }, body.isCreate)
+  } catch (error) {}
+  console.log(res)
+  ctx.body = res
+})
+
+// 修改属性
+router.put('/putProps', async (ctx, next) => {
+  const body = ctx.request.body
+  try {
+    var res = await putProps({
+      DeviceName: body.DeviceName,
+      Qos: body.Qos,
+      Topic: body.Topic,
+    })
+  } catch (error) {}
+  console.log(res)
+})
+
 app
   .use(cors())
   .use(bodyParser())
@@ -543,12 +621,86 @@ app.listen(4444, () => {
   console.log(`HTTP server is listening in ${process.env.domain}`)
 })
 
-// 获取产品属性数据
-client.DescribeDeviceData(Object.assign(myConfig.params)).then(
-  (data) => {
-    //console.log(data)
-  },
-  (err) => {
-    console.error('error', err)
+// 获取属性数据
+function getProps(params) {
+  params = Object.assign({}, myConfig.params, params)
+  return client.DescribeDeviceData(params)
+}
+
+// 获取历史属性值
+function getHistoryPropValue(params) {
+  params = Object.assign(
+    {
+      MinTime: 0,
+      MaxTime: Date.now(),
+      Limit: 10,
+    },
+    myConfig.params,
+    params
+  )
+  return client.DescribeDeviceDataHistory(params)
+}
+
+// 查看设备详情
+function getDeviceDes(params) {
+  params = Object.assign(
+    {
+      ProductId: 'K8LG8U17CW',
+      DeviceName: 'test2',
+    },
+    myConfig.params,
+    params
+  )
+  return client.DescribeDevice(params)
+}
+
+// 获取设备列表
+function getDeviceList(params) {
+  params = Object.assign(
+    {
+      ProductId: 'K8LG8U17CW',
+      Offset: 0,
+      Limit: 10,
+    },
+    myConfig.params,
+    params
+  )
+  return client.GetDeviceList(params)
+}
+
+// 调用行为
+function dispatchAction(params, isAsync = true) {
+  params = Object.assign(
+    {
+      ActionId: 'set_move_speed_and_angle',
+      InputParams: '{"speed_whole":52.2,"move_angle":22.1}',
+    },
+    myConfig.params,
+    params
+  )
+  return isAsync
+    ? client.CallDeviceActionAsync(params)
+    : client.CallDeviceActionSync(params)
+}
+
+// 创建、删除设备
+function putDevice(params, isCreate = true) {
+  const params = {
+    ProductId: 'K8LG8U17CW',
+    DeviceName: 'test2',
   }
-)
+  return isCreate ? client.CreateDevice(params) : client.DeleteDevice(params)
+}
+
+// 设备透传指令，修改属性值
+function putProps(params) {
+  params = Object.assign(
+    {
+      Topic: `$thing/down/property/${myConfig.MY_PRODUCTID}/${myConfig.MY_DEVICENAME}`,
+      Qos: 1,
+    },
+    myConfig.params,
+    params
+  )
+  return client.PublishMessage(params)
+}
