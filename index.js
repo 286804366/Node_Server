@@ -411,12 +411,10 @@ let webSocketServer = new ws.Server({
   port: 8889,
 })
 
-// // 开始监听端口
-// webSocketServer.listen(8089, '192.168.1.6')
-
+// 开始监听端口
 // webSocket 服务器开启监听事件
 webSocketServer.on('listening', () => {
-  console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8089} 端口`)
+  console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
 })
 
 // 接收到连接
