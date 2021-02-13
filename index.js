@@ -2,17 +2,11 @@
 
 const Koa = require('koa')
 const app = new Koa()
-const Router = require('koa-router')
+const router = require('koa-router')()
 const bodyParser = require('koa-bodyparser')
 const cors = require('koa2-cors')
-const views = require("koa-views")
 const staticFiles = require('koa-static')
 
-// 路由前缀
-const router = new Router({
-  // 添加路由前缀层级
-  prefix: '/',
-})
 process.env.domain =
   process.env.NODE_ENV == 'production' ? 'wlw.5102it.cn' : 'localhost:4444'
 /* 配置文件 */
@@ -520,29 +514,26 @@ cluster.on('exit', (worker, code, signal) => {
 //   ctx.body = info
 // })
 
-router
-  .post('/', (ctx, next) => {
-    ctx.body = ctx.request.body
-    console.log(ctx.body.payload.params)
-  })
-  .get('/', async (ctx, next) => {
-    await ctx.render('index')
-  })
+// router.get('/', (ctx, next) => {
+//   ctx.body = ctx.request.query
+//   // await ctx.render('index')
+// })
+
+// 腾讯sdk数据状态接口
+router.post('/receive', (ctx, next) => {
+  ctx.body = ctx.request.body.payload.params
+  console.log(ctx.body)
+  webSocket.send(JSON.stringify(ctx.request.body.payload.params))
+})
+
+
 
 app
   .use(cors())
-  .use(staticFiles(path.resolve(__dirname, './iotc/')))
-  .use(
-    views('views', {
-      map: {
-        html: 'ejs',
-      },
-    })
-  )
   .use(bodyParser())
+  .use(staticFiles(path.resolve(__dirname, './iotc/')))
   .use(router.routes())
   .use(router.allowedMethods())
-app
 
 app.listen(4444, () => {
   console.log(`HTTP server is listening in ${process.env.domain}`)
