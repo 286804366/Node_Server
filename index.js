@@ -519,14 +519,15 @@ cluster.on('exit', (worker, code, signal) => {
 //   ctx.body = info
 // })
 
-router.post('/', (ctx, next) => {
-  ctx.body = ctx.request.body
-  console.log(ctx.body.payload.params)
-})
-// .get('/', (ctx, next) => {
-//   ctx.body = 'Hello word'
-//   console.log(ctx.request.query)
-// })
+router
+  .post('/', (ctx, next) => {
+    ctx.body = ctx.request.body
+    console.log(ctx.body.payload.params)
+  })
+  .get('/', (ctx, next) => {
+    ctx.body = 'Hello word'
+    console.log(ctx.request.query)
+  })
 
 app
   .use(cors())
