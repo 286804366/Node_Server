@@ -4,3 +4,4 @@ node_modules
 push.sh
 img/
 config.js
+log
