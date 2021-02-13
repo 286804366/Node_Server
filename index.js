@@ -634,6 +634,7 @@ function getHistoryPropValue(params) {
       MinTime: 0,
       MaxTime: Date.now(),
       Limit: 10,
+      FieldName: 'cur_speed_whole',
     },
     myConfig.params,
     params
@@ -661,6 +662,7 @@ function getDeviceList(params) {
       ProductId: 'K8LG8U17CW',
       Offset: 0,
       Limit: 10,
+      DeviceName: 'test2',
     },
     myConfig.params,
     params
@@ -696,8 +698,11 @@ function putDevice(params, isCreate = true) {
 function putProps(params) {
   params = Object.assign(
     {
-      Topic: `$thing/down/property/${myConfig.MY_PRODUCTID}/${myConfig.MY_DEVICENAME}`,
+      Topic: `$thing/down/property/${
+        params.ProductId || myConfig.MY_PRODUCTID
+      }/${params.DeviceName || myConfig.MY_DEVICENAME}`,
       Qos: 1,
+      Payload: '{}',
     },
     myConfig.params,
     params
