@@ -1,14 +1,29 @@
 const dgram = require('dgram')
+const tcp = require('net')
 
-const udpServer = dgram.createSocket('udp4')
-const str = Buffer.from('ok')
-process.stdin.on('data', function (chunk) {
-  setInterval(() => {
-    udpServer.send(chunk, 4000, '192.168.146.129', () => {})
-  }, 500)
+
+const tcpClient = tcp.createConnection({
+  port :8088,
+  host:'192.168.1.6'
 })
-// udpServer.send(process.stdin, 4000, '192.168.146.129', () => {})
-udpServer.on('message', (msg, rinfo) => {
-  console.log(msg.toString())
-  udpServer.send(msg.toString(), rinfo.port, rinfo.address, () => {})
+tcpClient.on('connect',()=>{
+  const rinfo = tcpClient.address()
+  // tcpClient.send(process.stdin, 4000, '192.168.146.129', () => {})
+  tcpClient.on('data',(msg)=>{
+    console.log(`<Client>：收到tcp响应 >>>: ${msg.toString()}`)
+    console.log(`<Client>：请求地址 ${rinfo.address}:${rinfo.port}`)
+  })
+  tcpClient.on('close',(had_error)=>{
+    if(had_error){
+      console.log(`<Client>：远程服务器 ${rinfo.address}:${rinfo.port} [发生错误关闭连接]`)
+    }else{
+      console.log(`<Client>：远程服务器 ${rinfo.address}:${rinfo.port} [关闭连接]`)
+    }
+  })
+  process.stdin.on('data', function (chunk) {
+    setInterval(() => {
+      tcpClient.write(chunk, () => {})
+    }, 2000)
+  })
 })
+

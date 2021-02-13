@@ -12,6 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "koa": "^2.13.0",
-    "tencentcloud-sdk-nodejs": "^4.0.61"
+    "koa-router": "^10.0.0",
+    "tencentcloud-sdk-nodejs": "^4.0.61",
+    "ws": "^7.4.3"
   }
 }
