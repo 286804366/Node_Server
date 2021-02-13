@@ -520,12 +520,12 @@ cluster.on('exit', (worker, code, signal) => {
 router.post('/receive', (ctx, next) => {
   const body = ctx.request.body
   if (body.payload && body.payload.params && webSocket) {
-    console.log(body.payload.params)
+    console.log(body)
     // 同步数据回传给客户端
     webSocket.send(
       JSON.stringify({
         type: 'states',
-        data: body.payload.params,
+        data: body,
       })
     )
   }
@@ -703,7 +703,14 @@ function putProps(params) {
         params.ProductId || myConfig.MY_PRODUCTID
       }/${params.DeviceName || myConfig.MY_DEVICENAME}`,
       Qos: 1,
-      Payload: '{}',
+      Payload: `{
+        "clientToken": "clientToken-25dc324b-140b-4075-a715-563e7a7f8568",
+        "method": "control",
+        "params": {
+        "cur_duoji_1_angle": 30,
+        "cur_duoji_2_angle": 20,
+        }
+      }`,
     },
     myConfig.params,
     params
