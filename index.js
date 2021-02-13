@@ -608,6 +608,7 @@ router.put('/putProps', async (ctx, next) => {
     })
   } catch (error) {}
   console.log(res)
+  ctx.body = res
 })
 
 app
