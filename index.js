@@ -55,7 +55,7 @@ const CREATE_WORKER_PERIOD = 1000 * 60
 // 单位周期内最多创建的子进程数，超过则退出主进程
 const CREATE_WORKER_PER_MAX_COUNT = 30
 // 监听ip
-const localhost = '192.168.0.105'
+const localhost = '127.0.0.1'
 // 进程处理TCP顺序队列
 const handleTCPQueue = []
 // 进程处理WebSocket顺序队列
@@ -532,7 +532,7 @@ app.listen(4444, () => {
 // 获取产品属性数据
 client.DescribeDeviceData(Object.assign(myConfig.params)).then(
   (data) => {
-    console.log(data)
+    //console.log(data)
   },
   (err) => {
     console.error('error', err)
