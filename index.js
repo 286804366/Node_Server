@@ -5,6 +5,7 @@ const app = new Koa()
 const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
 const cors = require('koa2-cors')
+const views = require("koa-views")
 const staticFiles = require('koa-static')
 
 // 路由前缀
@@ -524,17 +525,24 @@ router
     ctx.body = ctx.request.body
     console.log(ctx.body.payload.params)
   })
-  .get('/', (ctx, next) => {
-    ctx.body = 'Hello word'
-    console.log(ctx.request.query)
+  .get('/', async (ctx, next) => {
+    await ctx.render('index')
   })
 
 app
   .use(cors())
   .use(staticFiles(path.resolve(__dirname, './iotc/')))
+  .use(
+    views('views', {
+      map: {
+        html: 'ejs',
+      },
+    })
+  )
   .use(bodyParser())
   .use(router.routes())
   .use(router.allowedMethods())
+app
 
 app.listen(4444, () => {
   console.log(`HTTP server is listening in ${process.env.domain}`)
