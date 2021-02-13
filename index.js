@@ -520,7 +520,7 @@ cluster.on('exit', (worker, code, signal) => {
 router.post('/receive', (ctx, next) => {
   const body = ctx.request.body
   if (body.payload && body.payload.params && webSocket) {
-    console.log(body)
+    // console.log(body)
     // 同步数据回传给客户端
     webSocket.send(
       JSON.stringify({
@@ -605,6 +605,7 @@ router.put('/putProps', async (ctx, next) => {
       DeviceName: body.DeviceName,
       Qos: body.Qos,
       Topic: body.Topic,
+      Payload:body.Payload
     })
   } catch (error) {}
   console.log(res)
