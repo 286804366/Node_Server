@@ -513,17 +513,18 @@ cluster.on('exit', (worker, code, signal) => {
 // app.use(async (ctx) => {
 //   ctx.body = info
 // })
-router.post('/receive', (ctx, next) => {
-  ctx.body = ctx.request.body
-  console.log(ctx.body)
-})
 
-router.get('/', (ctx, next) => {
-  ctx.body = 'Hello word'
-  console.log(ctx.request.query)
-})
+router
+  .post('/', (ctx, next) => {
+    ctx.body = ctx.request.body
+    console.log(ctx.body)
+  })
+  .get('/', (ctx, next) => {
+    ctx.body = 'Hello word'
+    console.log(ctx.request.query)
+  })
 
-app.use(router.routes()).use(bodyParser()).use(router.allowedMethods())
+app.use(bodyParser()).use(router.routes()).use(router.allowedMethods())
 
 app.listen(4444, () => {
   console.log('app is starting at port 4444...')
