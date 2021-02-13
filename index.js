@@ -518,6 +518,7 @@ router
   })
   .post('/receive', (ctx, next) => {
     ctx.body = 'Todo page'
+    console.log(ctx.request.body);
   })
 
 app
