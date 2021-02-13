@@ -4,6 +4,7 @@ const Koa = require('koa')
 const app = new Koa()
 const Router = require('koa-router')
 const bodyParser = require('koa-bodyparser')
+const cors = require('koa2-cors');
 const staticFiles = require('koa-static')
 
 // 路由前缀
@@ -528,7 +529,7 @@ router
   //   console.log(ctx.request.query)
   // })
 
-app.use(staticFiles(path.resolve(__dirname, "./iotc/"))).use(require('cors')()).use(bodyParser()).use(router.routes()).use(router.allowedMethods())
+app.use(cors()).use(staticFiles(path.resolve(__dirname, "./iotc/"))).use(require('cors')()).use(bodyParser()).use(router.routes()).use(router.allowedMethods())
 
 app.listen(4444, () => {
   console.log(`HTTP server is listening in ${process.env.domain}`)
