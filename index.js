@@ -512,18 +512,14 @@ cluster.on('exit', (worker, code, signal) => {
 // app.use(async (ctx) => {
 //   ctx.body = info
 // })
-router
-  .get('/', (ctx, next) => {
-    ctx.body = 'Hello word'
-  })
-  .post('/receive', (ctx, next) => {
-    ctx.body = 'Todo page'
-    console.log(ctx.request.body);
-  })
+router.get('/', (ctx, next) => {
+  ctx.body = 'Hello word'
+})
+router.post('/receive', (ctx, next) => {
+  ctx.body = ctx.request.body
+})
 
-app
-  .use(router.routes())
-  .use(router.allowedMethods())
+app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(4444, () => {
   console.log('app is starting at port 4444...')
