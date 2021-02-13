@@ -512,11 +512,14 @@ cluster.on('exit', (worker, code, signal) => {
 // app.use(async (ctx) => {
 //   ctx.body = info
 // })
+router.post('/', (ctx, next) => {
+  ctx.body = ctx.request.body
+  console.log(ctx.body)
+})
+
 router.get('/', (ctx, next) => {
   ctx.body = 'Hello word'
-})
-router.post('/receive', (ctx, next) => {
-  ctx.body = ctx.request.body
+  console.log(ctx.request.query)
 })
 
 app.use(router.routes()).use(router.allowedMethods())
