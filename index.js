@@ -423,7 +423,7 @@ webSocketServer.on('listening', () => {
       ws.isAlive = false
       ws.ping(function noop() {})
     })
-  }, 30000)
+  }, 60000)
   console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
 })
 
@@ -452,6 +452,7 @@ webSocketServer.on('connection', (socket, request) => {
   })
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
+    console.log(JSON.stringify(code), reason)
     webSocket = null
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
