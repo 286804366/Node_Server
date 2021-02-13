@@ -523,10 +523,10 @@ router
     ctx.body = ctx.request.body
     console.log(ctx.body.payload.params)
   })
-  .get('/', (ctx, next) => {
-    ctx.body = 'Hello word'
-    console.log(ctx.request.query)
-  })
+  // .get('/', (ctx, next) => {
+  //   ctx.body = 'Hello word'
+  //   console.log(ctx.request.query)
+  // })
 
 app.use(staticFiles(path.resolve(__dirname, "./iotc/"))).use(require('cors')()).use(bodyParser()).use(router.routes()).use(router.allowedMethods())
 
