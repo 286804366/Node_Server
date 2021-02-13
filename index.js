@@ -423,7 +423,7 @@ webSocketServer.on('listening', () => {
       ws.isAlive = false
       ws.ping(function noop() {})
     })
-  }, 60000)
+  }, 30000)
   console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
 })
 
@@ -433,7 +433,7 @@ webSocketServer.on('connection', (socket, request) => {
   // console.log(request.headers);
   console.log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
-
+  socket.ping(function noop() {})
   socket.isAlive = true
   socket.on('pong', function heartbeat() {
     this.isAlive = true
