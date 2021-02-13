@@ -412,17 +412,18 @@ let webSocketServer = new ws.Server({
 })
 
 // 心跳维持
-let wsInterval = setInterval(function ping() {
-  webSocketServer.clients.forEach(function each(ws) {
-    if (ws.isAlive === false) return ws.terminate()
-    ws.isAlive = false
-    ws.ping(function noop() {})
-  })
-}, 30000)
+let wsInterval = 0
 
 // 开始监听端口
 // webSocket 服务器开启监听事件
 webSocketServer.on('listening', () => {
+  wsInterval = setInterval(function ping() {
+    webSocketServer.clients.forEach(function each(ws) {
+      if (ws.isAlive === false) return ws.terminate()
+      ws.isAlive = false
+      ws.ping(function noop() {})
+    })
+  }, 30000)
   console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
 })
 
@@ -452,7 +453,6 @@ webSocketServer.on('connection', (socket, request) => {
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
     webSocket = null
-    clearInterval(wsInterval)
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
     // process.send({ id: worker.id, type: 'WebSocket' })
@@ -466,6 +466,7 @@ webSocketServer.on('error', (err) => {
 
 // webSocket 服务器关闭事件
 webSocketServer.on('close', () => {
+  clearInterval(wsInterval)
   console.log(`[主进程]：【WebSocket】 服务器关闭`)
   /* 创建 webSocket 服务器 */
   webSocketServer = ws.Server({
