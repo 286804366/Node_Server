@@ -421,25 +421,24 @@ webSocketServer.on('listening', () => {
 webSocketServer.on('connection', (socket, request) => {
   webSocket = socket
   // console.log(request.headers);
-  console.log(`[主进程]：【WebSocket】服务器建立新连接 ${request.headers.host}`)
+  console.log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
   socket.on('message', (str) => {
-    console.log(
-      `[主进程]：【WebSocket】服务器收到文本数据 ${str.toString('utf-8')}`
-    )
+    console.log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
     socket.send(str)
   })
 
   // WebSocket 连接出错
   socket.on('error', (err) => {
     webSocket = null
-    console.log(`[主进程]：【WebSocket】服务器连接出错`)
+    console.log(`[主进程]：【WebSocket】连接出错`)
     socket.close()
   })
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
+    console.log(code.code, reason)
     webSocket = null
-    console.log(`[主进程]：【WebSocket】服务器连接关闭`)
+    console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
     // process.send({ id: worker.id, type: 'WebSocket' })
   })
