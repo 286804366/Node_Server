@@ -517,7 +517,7 @@ cluster.on('exit', (worker, code, signal) => {
 router
   .post('/', (ctx, next) => {
     ctx.body = ctx.request.body
-    console.log(ctx.body)
+    console.log(ctx.body.payload.params)
   })
   .get('/', (ctx, next) => {
     ctx.body = 'Hello word'
