@@ -432,6 +432,7 @@ webSocketServer.on('connection', (socket, request) => {
 
   // WebSocket 连接出错
   socket.on('error', (err) => {
+    webSocket = null
     console.log(`[主进程]：【WebSocket】服务器连接出错`)
     socket.close()
   })
@@ -519,12 +520,18 @@ cluster.on('exit', (worker, code, signal) => {
 
 // 腾讯sdk数据状态接口
 router.post('/receive', (ctx, next) => {
-  ctx.body = ctx.request.body.payload.params
-  console.log(ctx.body)
-  webSocket.send(JSON.stringify(ctx.request.body.payload.params))
+  const body = ctx.request.body
+  if (body.payload && body.payload.params && webSocket) {
+    console.log(body.payload.params)
+    // 同步数据回传给客户端
+    webSocket.send(
+      JSON.stringify({
+        type: 'states',
+        data: body.payload.params,
+      })
+    )
+  }
 })
-
-
 
 app
   .use(cors())
