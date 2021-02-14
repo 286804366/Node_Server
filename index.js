@@ -435,13 +435,19 @@ webSocketServer.on('connection', (socket, request) => {
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
   socket.ping(function noop() {})
   socket.isAlive = true
+  socket.send('ping')
+
   socket.on('pong', function heartbeat() {
     this.isAlive = true
   })
 
   socket.on('message', (str) => {
     console.log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
-    socket.send(str)
+    if (str.toString('utf-8') === 'pong') {
+      setTimeout(() => {
+        socket.send('ping')
+      }, 5000)
+    }
   })
 
   // WebSocket 连接出错
