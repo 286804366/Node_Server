@@ -411,20 +411,22 @@ let webSocketServer = new ws.Server({
   port: 8889,
 })
 
-// 心跳维持
 let wsInterval = 0
+
+function keepConnect() {
+  wsInterval = setInterval(()=> {
+    webSocketServer.clients.forEach(function each(ws) {
+      if (ws.isAlive === false) return ws.terminate()
+      ws.isAlive = false
+    })
+  }, 30000)
+}
 
 // 开始监听端口
 // webSocket 服务器开启监听事件
 webSocketServer.on('listening', () => {
-  wsInterval = setInterval(function ping() {
-    webSocketServer.clients.forEach(function each(ws) {
-      if (ws.isAlive === false) return ws.terminate()
-      ws.isAlive = false
-      ws.ping(function noop() {})
-    })
-  }, 30000)
   console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
+  keepConnect()
 })
 
 // 接收到连接
@@ -433,20 +435,16 @@ webSocketServer.on('connection', (socket, request) => {
   // console.log(request.headers);
   console.log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
-  socket.ping(function noop() {})
-  socket.isAlive = true
+  // 发送心跳包
   socket.send('ping')
-
-  socket.on('pong', function heartbeat() {
-    this.isAlive = true
-  })
-
   socket.on('message', (str) => {
     console.log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
+    // 心跳维持
     if (str.toString('utf-8') === 'pong') {
-      setTimeout(() => {
+      return setTimeout(() => {
         socket.send('ping')
-      }, 5000)
+        socket.isAlive = true
+      }, 3000)
     }
   })
 
@@ -473,13 +471,15 @@ webSocketServer.on('error', (err) => {
 
 // webSocket 服务器关闭事件
 webSocketServer.on('close', () => {
-  clearInterval(wsInterval)
   console.log(`[主进程]：【WebSocket】 服务器关闭`)
+  clearInterval(wsInterval)
   /* 创建 webSocket 服务器 */
-  webSocketServer = ws.Server({
-    host: localhost,
-    port: 8889,
-  })
+  setTimeout(() => {
+    webSocketServer = ws.Server({
+      host: localhost,
+      port: 8889,
+    })
+  }, 1000)
   // 开始监听端口
   // webSocketServer.listen(8089, '192.168.1.6')
   console.log(`[主进程]：重启【WebSocket】服务器`)
