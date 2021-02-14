@@ -567,7 +567,7 @@ router.get('/props/:DeviceName', async (ctx, next) => {
 // 获取设备单一属性的历史值
 router.get('/historyPropValue/:DeviceName', async (ctx, next) => {
   try {
-    var res = await getHistoryPropValue({ DeviceName: ctx.params.DeviceName })
+    var res = await getHistoryPropValue({ DeviceName: ctx.params.DeviceName ,FieldName:ctx.query.FieldName,Limit:ctx.query.Limit})
   } catch (error) {}
   console.log(res)
   ctx.body = res
