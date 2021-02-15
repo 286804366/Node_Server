@@ -362,10 +362,10 @@ tcpServer.on('connection', (socket) => {
   })
   // tcp 服务器绑定端口，并开始监听
   socket.on('data', (msg) => {
+    console.log('send img');
     if (!webSocket) return
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
-    console.log('send img');
   })
   socket.on('error', () => {
     console.log(
@@ -457,7 +457,7 @@ webSocketServer.on('connection', (socket, request) => {
   })
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
-    console.log(JSON.stringify(code), reason)
+    // console.log(JSON.stringify(code), reason)
     webSocket = null
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
