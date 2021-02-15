@@ -566,13 +566,13 @@ router.get('/props/:DeviceName', async (ctx, next) => {
 })
 
 // 获取设备单一属性的历史值
-router.get('/historyPropValue/:DeviceName', async (ctx, next) => {
-  // console.log(ctx.params,ctx.query);
+router.post('/historyPropValue', async (ctx, next) => {
+  const body = ctx.request.body
   try {
     var res = await getHistoryPropValue({
-      DeviceName: ctx.params.DeviceName,
-      FieldName: ctx.query.FieldName,
-      Limit: ctx.query.Limit * 1,
+      DeviceName: body.DeviceName,
+      FieldName: body.FieldName,
+      Limit: body.Limit * 1,
     })
   } catch (error) {}
   console.log(res)
