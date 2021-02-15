@@ -242,7 +242,7 @@ function createWorker() {
 let tcpServer = tcp.createServer()
 
 // tcp 服务器绑定端口，并开始监听
-tcpServer.listen(8888, localhost)
+tcpServer.listen(8888, '0.0.0.0')
 
 // tcp 服务器开始监听触发
 tcpServer.on('listening', () => {
@@ -663,7 +663,7 @@ function getProps(params) {
 function getHistoryPropValue(params) {
   params = Object.assign(
     {
-      MinTime: 0,
+      MinTime: Date.now() - 1000*60,
       MaxTime: Date.now(),
       Limit: 30,
       FieldName: 'cur_speed_whole',
