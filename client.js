@@ -2,7 +2,7 @@ const dgram = require('dgram')
 const tcp = require('net')
 
 const tcpClient = tcp.createConnection({
-  port: 58888,
+  port: 58266,
   host: '118.25.95.166',
 })
 tcpClient.on('connect', () => {
@@ -26,9 +26,9 @@ tcpClient.on('connect', () => {
       )
     }
   })
-  process.stdin.on('data', function (chunk) {
-    setInterval(() => {
-      tcpClient.write(chunk, () => {})
-    }, 2000)
-  })
+  // process.stdin.on('data', function (chunk) {
+  //   setInterval(() => {
+  //     tcpClient.write(chunk, () => {})
+  //   }, 2000)
+  // })
 })

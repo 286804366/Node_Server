@@ -362,10 +362,10 @@ tcpServer.on('connection', (socket) => {
   })
   // tcp 服务器绑定端口，并开始监听
   socket.on('data', (msg) => {
-    console.log('send img');
     if (!webSocket) return
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
+    console.log('send img')
   })
   socket.on('error', () => {
     console.log(
@@ -415,7 +415,7 @@ let webSocketServer = new ws.Server({
 let wsInterval = 0
 
 function keepConnect() {
-  wsInterval = setInterval(()=> {
+  wsInterval = setInterval(() => {
     webSocketServer.clients.forEach(function each(ws) {
       if (ws.isAlive === false) return ws.terminate()
       ws.isAlive = false
@@ -569,7 +569,11 @@ router.get('/props/:DeviceName', async (ctx, next) => {
 router.get('/historyPropValue/:DeviceName', async (ctx, next) => {
   // console.log(ctx.params,ctx.query);
   try {
-    var res = await getHistoryPropValue({ DeviceName: ctx.params.DeviceName ,FieldName:ctx.query.FieldName,Limit:ctx.query.Limit*1})
+    var res = await getHistoryPropValue({
+      DeviceName: ctx.params.DeviceName,
+      FieldName: ctx.query.FieldName,
+      Limit: ctx.query.Limit * 1,
+    })
   } catch (error) {}
   console.log(res)
   ctx.body = res
@@ -646,7 +650,7 @@ app
   .use(router.allowedMethods())
 
 app.listen(4444, () => {
-  console.log(`HTTP server is listening in ${process.env.domain}`)
+  console.log(`HTTP server is listening in ${process.env.domain}:4444`)
 })
 
 // 获取属性数据
