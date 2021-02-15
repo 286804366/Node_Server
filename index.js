@@ -365,6 +365,7 @@ tcpServer.on('connection', (socket) => {
     if (!webSocket) return
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
+    console.log('send img');
   })
   socket.on('error', () => {
     console.log(
@@ -660,7 +661,7 @@ function getHistoryPropValue(params) {
     {
       MinTime: 0,
       MaxTime: Date.now(),
-      Limit: 10,
+      Limit: 30,
       FieldName: 'cur_speed_whole',
     },
     myConfig.params,
