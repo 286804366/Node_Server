@@ -89,6 +89,12 @@ let historyCount = 0
 //   createWorker()
 // }
 
+// 包装log
+function log(...res){
+  return
+  log(...res)
+}
+
 /* 连接分发 */
 // 分发连接
 function dispatchConnection(socket, address, type) {
@@ -102,7 +108,7 @@ function dispatchConnection(socket, address, type) {
         { id: handleWorker.id, type },
         socket
       )
-      return console.log(
+      return log(
         `[主进程]：新的 ${type} 连接 ${address} 已存在<子进程${handleWorker.id}>中处理 `
       )
     }
@@ -126,7 +132,7 @@ function dispatchConnection(socket, address, type) {
     handleWorker[type] = address
   }
   workers[handleWorker.id].worker.send({ id: handleWorker.id, type }, socket)
-  console.log(
+  log(
     `[主进程]：新的 ${type} 连接 ${address} 分发给<子进程${handleWorker.id}>处理 `
   )
 }
@@ -149,7 +155,7 @@ function createWorker() {
   } else {
     // 已记录10次创建,如果间隔在单位周期内，则退出主进程
     if (Date.now() - beginTime < CREATE_WORKER_PERIOD) {
-      console.log(`[主进程]：过于频繁创建子进程，自动退出主进程!`)
+      log(`[主进程]：过于频繁创建子进程，自动退出主进程!`)
 
       // 记录日志
       recordLog(
@@ -187,7 +193,7 @@ function createWorker() {
       // 三次没回应，杀之
       if (curWorker.missed === 3) {
         clearInterval(curWorker.timerId)
-        console.log(
+        log(
           `[主进程]：子进程(${curWorker.id}) pid=${curWorker.pid} 阻塞被【清除】！`
         )
         recordLog(`【主进程】${new Date()}\n子进程阻塞，被自动清除\n\n`)
@@ -196,11 +202,11 @@ function createWorker() {
       }
       // 开始心跳
       curWorker.missed++
-      // console.log('ping')
+      // log('ping')
 
       curWorker.worker.send({ state: `ping#${curWorker.pid}` })
     }, 1000)
-    console.log(`[主进程]：子进程(${curWorker.id}) 已【启动】！`)
+    log(`[主进程]：子进程(${curWorker.id}) 已【启动】！`)
   })
 
   // 监视子进程回应心跳
@@ -210,7 +216,7 @@ function createWorker() {
       const id = getHandleWorkerPos(curWorker.id, msg.type)
       const handleQueue =
         msg.type === 'TCP' ? handleTCPQueue : handleWebSocketQueue
-      console.log(
+      log(
         `[主进程]：子进程(${handleQueue[id].id}) 已关闭${
           handleQueue[id][msg.type]
         }连接！`
@@ -247,14 +253,14 @@ tcpServer.listen(8888, '0.0.0.0')
 // tcp 服务器开始监听触发
 tcpServer.on('listening', () => {
   const address = tcpServer.address()
-  console.log(
+  log(
     `[主进程]：启动【TCP】服务器 监听 ${address.address}:${address.port}`
   )
 })
 
 // 发送拦截
 function send(msg) {
-  // console.log(`------------------------------------------------------------------------------------
+  // log(`------------------------------------------------------------------------------------
   // -----------------\r\n${msg.toString('hex')}\r\n`);
   webSocket.send(msg)
 }
@@ -347,14 +353,14 @@ function handleImgData(msg) {
 tcpServer.on('connection', (socket) => {
   const rinfo = socket.address()
   tcpSocket = socket
-  console.log(
+  log(
     `[主进程]：建立新的 TCP 连接，远程客户端地址 ${rinfo.address}:${rinfo.port}`
   )
   // return dispatchConnection(socket, `${rinfo.address}:${rinfo.port}`, 'TCP')
   // 设置超时时间
   socket.setTimeout(1000 * 10)
   socket.on('timeout', () => {
-    console.log(
+    log(
       `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [连接超时准备关闭]`
     )
     socket.end()
@@ -363,28 +369,28 @@ tcpServer.on('connection', (socket) => {
   // tcp 服务器绑定端口，并开始监听
   socket.on('data', (msg) => {
     if (!webSocket) return
-    // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
+    // log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
-    //console.log('send img')
+    //log('send img')
   })
   socket.on('error', () => {
-    console.log(
+    log(
       `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [客户端错误准备关闭连接]`
     )
     socket.destroy()
   })
   socket.on('end', () => {
-    console.log(
+    log(
       `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [远程客户端主动请求关闭连接]`
     )
   })
   socket.on('close', (had_error) => {
     if (had_error) {
-      console.log(
+      log(
         `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [发生传输错误关闭连接]`
       )
     } else {
-      console.log(
+      log(
         `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [关闭连接]`
       )
     }
@@ -393,17 +399,17 @@ tcpServer.on('connection', (socket) => {
 
 // tcp 服务器出错
 tcpServer.on('error', () => {
-  console.log(`[主进程]：【TCP】服务器 出错`)
+  log(`[主进程]：【TCP】服务器 出错`)
 })
 
 // tcp 服务器关闭
 tcpServer.on('close', () => {
-  console.log(`[主进程]：【TCP】服务器 关闭`)
+  log(`[主进程]：【TCP】服务器 关闭`)
   // // 重启tcp服务器
   // tcpServer = tcp.createServer({ pauseOnConnect: true })
   // // tcp 服务器绑定端口，并开始监听
   // tcpServer.listen(8088, '192.168.1.6')
-  // console.log(`[主进程]：重启【TCP】服务器`)
+  // log(`[主进程]：重启【TCP】服务器`)
 })
 
 /* 创建 webSocket 服务器 */
@@ -426,20 +432,20 @@ function keepConnect() {
 // 开始监听端口
 // webSocket 服务器开启监听事件
 webSocketServer.on('listening', () => {
-  console.log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
+  log(`[主进程]：启动【WebSocket】服务器 监听 ${8889} 端口`)
   keepConnect()
 })
 
 // 接收到连接
 webSocketServer.on('connection', (socket, request) => {
   webSocket = socket
-  // console.log(request.headers);
-  console.log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
+  // log(request.headers);
+  log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
   // 发送心跳包
   socket.send('ping')
   socket.on('message', (str) => {
-    console.log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
+    log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
     // 心跳维持
     if (str.toString('utf-8') === 'pong') {
       return setTimeout(() => {
@@ -452,14 +458,14 @@ webSocketServer.on('connection', (socket, request) => {
   // WebSocket 连接出错
   socket.on('error', (err) => {
     webSocket = null
-    console.log(`[主进程]：【WebSocket】连接出错`)
+    log(`[主进程]：【WebSocket】连接出错`)
     socket.close()
   })
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
-    // console.log(JSON.stringify(code), reason)
+    // log(JSON.stringify(code), reason)
     webSocket = null
-    console.log(`[主进程]：【WebSocket】连接关闭`)
+    log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
     // process.send({ id: worker.id, type: 'WebSocket' })
   })
@@ -467,12 +473,12 @@ webSocketServer.on('connection', (socket, request) => {
 
 // webSocket 服务器出错事件
 webSocketServer.on('error', (err) => {
-  console.log(`[主进程]：【WebSocket】 服务器出错`)
+  log(`[主进程]：【WebSocket】 服务器出错`)
 })
 
 // webSocket 服务器关闭事件
 webSocketServer.on('close', () => {
-  console.log(`[主进程]：【WebSocket】 服务器关闭`)
+  log(`[主进程]：【WebSocket】 服务器关闭`)
   clearInterval(wsInterval)
   /* 创建 webSocket 服务器 */
   setTimeout(() => {
@@ -483,13 +489,13 @@ webSocketServer.on('close', () => {
   }, 1000)
   // 开始监听端口
   // webSocketServer.listen(8089, '192.168.1.6')
-  console.log(`[主进程]：重启【WebSocket】服务器`)
+  log(`[主进程]：重启【WebSocket】服务器`)
 })
 
 /* 主进程事件 */
 // 未知错误 记录日志并退出进程
 process.on('uncaughtException', (err, origin) => {
-  console.log(`[主进程]：发生【错误】!`)
+  log(`[主进程]：发生【错误】!`)
 
   // 记录日志
   recordLog(
@@ -500,24 +506,24 @@ process.on('uncaughtException', (err, origin) => {
 
 // 退出主进程
 process.on('exit', (code) => {
-  console.log(`[主进程]：【退出】退出码 ${code}！`)
+  log(`[主进程]：【退出】退出码 ${code}！`)
 
   // 清除所有子进程
   const allChildWorker = Object.values(workers)
   for (const childWorker of allChildWorker) {
     childWorker.worker.kill()
   }
-  console.log(`[主进程]：共清除 ${allChildWorker.length} 个子进程！`)
+  log(`[主进程]：共清除 ${allChildWorker.length} 个子进程！`)
 })
 
 // 主进程fork事件
 cluster.on('fork', (worker) => {
-  console.log(`[主进程]：开始【创建】子进程(${worker.id})...`)
+  log(`[主进程]：开始【创建】子进程(${worker.id})...`)
 })
 
 // 子进程退出
 cluster.on('exit', (worker, code, signal) => {
-  console.log(
+  log(
     `[主进程]：子进程(${worker.id}) 已被信号 ${signal}杀死，退出码 ${code}，【退出】!`
   )
   handleTCPQueue.splice(getHandleWorkerPos(worker.id, 'TCP'), 1)
@@ -545,7 +551,7 @@ cluster.on('exit', (worker, code, signal) => {
 router.post('/receive', (ctx, next) => {
   const body = ctx.request.body
   if (body.payload && body.payload.params && webSocket) {
-    // console.log(body)
+    // log(body)
     // 同步数据回传给客户端
     webSocket.send(
       JSON.stringify({
@@ -561,7 +567,7 @@ router.get('/props/:DeviceName', async (ctx, next) => {
   try {
     var res = await getProps({ DeviceName: ctx.params.DeviceName })
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -575,7 +581,7 @@ router.post('/historyPropValue', async (ctx, next) => {
       Limit: body.Limit * 1,
     })
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -584,7 +590,7 @@ router.get('/deviceDes/:DeviceName', async (ctx, next) => {
   try {
     var res = await getDeviceDes({ DeviceName: ctx.params.DeviceName })
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -596,7 +602,7 @@ router.get('/deviceList', async (ctx, next) => {
       Limit: ctx.query.Limit,
     })
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -613,7 +619,7 @@ router.post('/dispatchAction', async (ctx, next) => {
       body.isAsync
     )
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -623,7 +629,7 @@ router.put('/putDevice', async (ctx, next) => {
   try {
     var res = await putDevice({ DeviceName: body.DeviceName }, body.isCreate)
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -638,7 +644,7 @@ router.put('/putProps', async (ctx, next) => {
       Payload: body.Payload,
     })
   } catch (error) {}
-  console.log(res)
+  log(res)
   ctx.body = res
 })
 
@@ -650,7 +656,7 @@ app
   .use(router.allowedMethods())
 
 app.listen(4444, () => {
-  console.log(`HTTP server is listening in ${process.env.domain}:4444`)
+  log(`HTTP server is listening in ${process.env.domain}:4444`)
 })
 
 // 获取属性数据
