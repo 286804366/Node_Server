@@ -565,8 +565,9 @@ router.post('/receive', (ctx, next) => {
 // 小车移动
 router.post('/move', (ctx, next) => {
   const body = ctx.request.body
-  putMove(body)
+  putMove(`@${JSON.stringify(body)}$`)
   //log(res)
+  console.log(`@${JSON.stringify(body)}$`);
   ctx.body ='ok'
 })
 
