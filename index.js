@@ -562,6 +562,16 @@ router.post('/receive', (ctx, next) => {
   }
 })
 
+// 小车移动
+router.post('/move', (ctx, next) => {
+  const body = ctx.request.body
+  try {
+    var res = await putMove(`@${JSON.stringify(body)}`)
+  } catch (error) {}
+  log(res)
+  ctx.body = res
+})
+
 // 获取设备所有属性
 router.get('/props/:DeviceName', async (ctx, next) => {
   try {
@@ -753,4 +763,9 @@ function putProps(params) {
     params
   )
   return client.PublishMessage(params)
+}
+
+// 小车移动指令，通过透传到wifi2
+function putMove(command) {
+  return tcpSocket.write(command)
 }
