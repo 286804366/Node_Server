@@ -358,7 +358,7 @@ tcpServer.on('connection', (socket) => {
   )
   // return dispatchConnection(socket, `${rinfo.address}:${rinfo.port}`, 'TCP')
   // 设置超时时间
-  socket.setTimeout(1000 * 10)
+  socket.setTimeout(1000 * 60)
   socket.on('timeout', () => {
     log(
       `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [连接超时准备关闭]`
