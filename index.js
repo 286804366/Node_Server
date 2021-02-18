@@ -91,7 +91,7 @@ let historyCount = 0
 
 // 包装log
 function log(...res){
-  //return
+  return
   console.log(...res)
 }
 
