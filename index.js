@@ -766,5 +766,5 @@ function putProps(params) {
 
 // 小车移动指令，通过透传到wifi2
 function putMove(command) {
-  return tcpSocket.write(command)
+  return tcpSocket&&tcpSocket.write(command)
 }
