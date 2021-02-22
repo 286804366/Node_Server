@@ -369,7 +369,7 @@ tcpServer.on('connection', (socket) => {
   // tcp 服务器绑定端口，并开始监听
   socket.on('data', (msg) => {
     if (!webSocket) return
-    console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
+    //console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
     //console.log('send img')
   })
