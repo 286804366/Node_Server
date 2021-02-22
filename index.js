@@ -371,7 +371,7 @@ tcpServer.on('connection', (socket) => {
     if (!webSocket) return
     //console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
-    //console.log('send img')
+    console.log('send img')
   })
   socket.on('error', () => {
     console.log(
