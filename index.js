@@ -260,8 +260,8 @@ tcpServer.on('listening', () => {
 
 // 发送拦截
 function send(msg) {
-  console.log(`------------------------------------------------------------------------------------
-  -----------------\r\n${msg.toString('hex')}\r\n`);
+  // console.log(`------------------------------------------------------------------------------------
+  // -----------------\r\n${msg.toString('hex')}\r\n`);
   webSocket.send(msg)
 }
 
@@ -371,7 +371,7 @@ tcpServer.on('connection', (socket) => {
     if (!webSocket) return
     //console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
-    //console.log('send img')
+    console.log('send img')
   })
   socket.on('error', () => {
     console.log(
