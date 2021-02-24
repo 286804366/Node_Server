@@ -372,7 +372,7 @@ tcpServer.on('connection', (socket) => {
     if (!webSocket) return
     //console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     handleImgData(msg)
-    console.log('send img')
+    //console.log('send img')
   })
   socket.on('error', () => {
     console.log(
@@ -573,7 +573,7 @@ router.post('/move', (ctx, next) => {
     isDebounce = true
     setTimeout(() => {
       isDebounce = false
-    }, 500)
+    }, body.time)
   }
   console.log(`@${JSON.stringify(body.data)}$`)
   putMove(`@@@@@@${JSON.stringify(body.data)}$`)
