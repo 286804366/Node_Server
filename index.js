@@ -80,7 +80,7 @@ let invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
 let beginTime = 0
 let historyCount = 0
 
-let isDebounce=false
+let isDebounce = false
 // cluster.setupMaster({
 //   exec: './worker.js',
 // })
@@ -91,7 +91,7 @@ let isDebounce=false
 // }
 
 // 包装log
-function log(...res){
+function log(...res) {
   return
   console.log(...res)
 }
@@ -566,19 +566,18 @@ router.post('/receive', (ctx, next) => {
 // 小车移动
 router.post('/move', (ctx, next) => {
   const body = ctx.request.body
-  console.log(`@${JSON.stringify(body)}$`);
 
-  if(isDebounce) return ctx.body ='debounce'
+  if (isDebounce) return (ctx.body = 'debounce')
   // 防抖
-  if(body.debounce){
-    isDebounce=true
+  if (body.debounce) {
+    isDebounce = true
     setTimeout(() => {
-      isDebounce=false
-    }, 500);
+      isDebounce = false
+    }, 500)
   }
-  
+  console.log(`@${JSON.stringify(body)}$`)
   putMove(`@@@@@@${JSON.stringify(body)}$`)
-  ctx.body ='ok'
+  ctx.body = 'ok'
 })
 
 // 获取设备所有属性
@@ -688,7 +687,7 @@ function getProps(params) {
 function getHistoryPropValue(params) {
   params = Object.assign(
     {
-      MinTime: Date.now() - 1000*60,
+      MinTime: Date.now() - 1000 * 60,
       MaxTime: Date.now(),
       Limit: 30,
       FieldName: 'cur_speed_whole',
@@ -776,5 +775,5 @@ function putProps(params) {
 
 // 小车移动指令，通过透传到wifi2
 function putMove(command) {
-  return tcpSocket&&tcpSocket.write(command)
+  return tcpSocket && tcpSocket.write(command)
 }
