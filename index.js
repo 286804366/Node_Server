@@ -575,8 +575,8 @@ router.post('/move', (ctx, next) => {
       isDebounce = false
     }, 500)
   }
-  console.log(`@${JSON.stringify(body)}$`)
-  putMove(`@@@@@@${JSON.stringify(body)}$`)
+  console.log(`@${JSON.stringify(body.data)}$`)
+  putMove(`@@@@@@${JSON.stringify(body.data)}$`)
   ctx.body = 'ok'
 })
 
