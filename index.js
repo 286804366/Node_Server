@@ -80,6 +80,7 @@ let invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
 let beginTime = 0
 let historyCount = 0
 
+let isDebounce=false
 // cluster.setupMaster({
 //   exec: './worker.js',
 // })
@@ -565,9 +566,18 @@ router.post('/receive', (ctx, next) => {
 // 小车移动
 router.post('/move', (ctx, next) => {
   const body = ctx.request.body
-  putMove(`@@@@@${JSON.stringify(body)}$`)
-  //log(res)
   console.log(`@${JSON.stringify(body)}$`);
+
+  if(isDebounce) return ctx.body ='debounce'
+  // 防抖
+  if(body.debounce){
+    isDebounce=true
+    setTimeout(() => {
+      isDebounce=false
+    }, 500);
+  }
+  
+  putMove(`@@@@@@${JSON.stringify(body)}$`)
   ctx.body ='ok'
 })
 
