@@ -669,17 +669,14 @@ router.put('/putProps', async (ctx, next) => {
 
 // 更新小车固件
 router.post('/updatefirmware', async (ctx, next) => {
-  const body = ctx.request.body
-  // try {
-  //   var res = await getHistoryPropValue({
-  //     DeviceName: body.DeviceName,
-  //     FieldName: body.FieldName,
-  //     Limit: body.Limit * 1,
-  //   })
-  // } catch (error) {}
-  //log(body.file)
-  //console.log(ctx.request.files.file)
-  tcpSocket.write(ctx.request.files.file)
+  const files = ctx.request.files
+  if(files.file.path){
+    fs.readFile(files.file.path,(err,chunk)=>{
+      tcpSocket&&tcpSocket.write(chunk)
+    })
+    //tcpSocket&&tcpSocket.write(fs.readFileSync(ctx.request.files.file.path))
+  }
+  //tcpSocket.write(ctx.request.files.file)
   ctx.body = 'ok'
 })
 
