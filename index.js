@@ -4,11 +4,12 @@ const Koa = require('koa')
 const app = new Koa()
 const router = require('koa-router')()
 const bodyParser = require('koa-bodyparser')
+const koaBody = require('koa-body')
 const cors = require('koa2-cors')
 const staticFiles = require('koa-static')
 
 process.env.domain =
-  process.env.NODE_ENV == 'production' ? 'wlw.5102it.cn' : 'localhost:4444'
+  process.env.NODE_ENV == 'production' ? 'wlw.5102it.cn' : '127.0.0.1'
 /* 配置文件 */
 const myConfig = require('./config.js')
 
@@ -666,7 +667,6 @@ router.put('/putProps', async (ctx, next) => {
   ctx.body = res
 })
 
-
 // 更新小车固件
 router.post('/updatefirmware', async (ctx, next) => {
   const body = ctx.request.body
@@ -678,20 +678,28 @@ router.post('/updatefirmware', async (ctx, next) => {
   //   })
   // } catch (error) {}
   //log(body.file)
-  console.log(body.file)
+  //console.log(ctx.request.files.file)
+  tcpSocket.write(ctx.request.files.file)
   ctx.body = 'ok'
 })
-
 
 app
   .use(cors())
   .use(bodyParser())
+  .use(
+    koaBody({
+      multipart: true,
+      formidable: {
+        maxFileSize: 200 * 1024 * 1024, // 设置上传文件大小最大限制，默认2M
+      },
+    })
+  )
   .use(staticFiles(path.resolve(__dirname, './iotc/')))
   .use(router.routes())
   .use(router.allowedMethods())
 
 app.listen(4444, () => {
-  log(`HTTP server is listening in ${process.env.domain}:4444`)
+  console.log(`HTTP server is listening in ${process.env.domain}:4444`)
 })
 
 // 获取属性数据
