@@ -677,7 +677,8 @@ router.post('/updatefirmware', async (ctx, next) => {
   //     Limit: body.Limit * 1,
   //   })
   // } catch (error) {}
-  log(body.file)
+  //log(body.file)
+  console.log(body.file)
   ctx.body = 'ok'
 })
 
