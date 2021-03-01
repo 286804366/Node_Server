@@ -666,6 +666,22 @@ router.put('/putProps', async (ctx, next) => {
   ctx.body = res
 })
 
+
+// 更新小车固件
+router.post('/updatefirmware', async (ctx, next) => {
+  const body = ctx.request.body
+  // try {
+  //   var res = await getHistoryPropValue({
+  //     DeviceName: body.DeviceName,
+  //     FieldName: body.FieldName,
+  //     Limit: body.Limit * 1,
+  //   })
+  // } catch (error) {}
+  log(body.file)
+  ctx.body = 'ok'
+})
+
+
 app
   .use(cors())
   .use(bodyParser())
