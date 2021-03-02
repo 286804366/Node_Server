@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const tcp = require('net')
-const recordLog = require('./log.js')
+const recordLog = require('../log.js')
 const ws = require('ws')
 
 /* 变量定义 */

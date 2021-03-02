@@ -1,41 +1,31 @@
 
-const { app } = require('./server/httpServer')
-// 导入tcp发送数据特权方法
-const { tcpServer, sendDataByTCP } = require('./server/tcpServer')
-// 导入websocket发送数据特权方法
-const { sendDataByWebSocket } = require('./server/webSocketServer')
-// 集群配置
-const clusterConfig = require('./config/clusterConfig')
 
-// 日志记录
+const os = require('os')
+const cpus = os.cpus()
+
+const fs = require('fs')
+const path = require('path')
 const recordLog = require('./log.js')
 
 const cluster = require('cluster')
 
 // 进程池
 const workers = {}
+// 最大创建子进程数
+const MAX_CHILD_WORKER_COUNT = 1 || Math.ceil(cpus.length)
+// 创建子进程记录周期
+const CREATE_WORKER_PERIOD = 1000 * 60
+// 单位周期内最多创建的子进程数，超过则退出主进程
+const CREATE_WORKER_PER_MAX_COUNT = 30
 // 进程处理TCP顺序队列
 const handleTCPQueue = []
 // 进程处理WebSocket顺序队列
 const handleWebSocketQueue = []
 
+
 let beginTime = 0
 let historyCount = 0
 
-// cluster.setupMaster({
-//   exec: './worker.js',
-// })
-
-// // 创建多进程，用于处理 连接
-// for (let i = 0; i < clusterConfig.MAX_CHILD_WORKER_COUNT; i++) {
-//   createWorker()
-// }
-
-// 包装log
-function log(...res) {
-  return
-  console.log(...res)
-}
 
 /* 连接分发 */
 // 分发连接
@@ -88,7 +78,7 @@ function getHandleWorkerPos(id, type) {
 // 创建子进程
 function createWorker() {
   // 记录已创建过的子进程数
-  if (historyCount < clusterConfig.CREATE_WORKER_PER_MAX_COUNT) {
+  if (historyCount < CREATE_WORKER_PER_MAX_COUNT) {
     // 未开始计时
     if (beginTime === 0) {
       beginTime = Date.now()
@@ -96,7 +86,7 @@ function createWorker() {
     historyCount++
   } else {
     // 已记录10次创建,如果间隔在单位周期内，则退出主进程
-    if (Date.now() - beginTime < clusterConfig.CREATE_WORKER_PERIOD) {
+    if (Date.now() - beginTime < CREATE_WORKER_PERIOD) {
       console.log(`[主进程]：过于频繁创建子进程，自动退出主进程!`)
 
       // 记录日志
@@ -133,7 +123,7 @@ function createWorker() {
     // 心跳
     curWorker.timerId = setInterval(function () {
       // 三次没回应，杀之
-      if (curWorker.missed === clusterConfig.MAX_MISS_COUNT) {
+      if (curWorker.missed === 3) {
         clearInterval(curWorker.timerId)
         console.log(
           `[主进程]：子进程(${curWorker.id}) pid=${curWorker.pid} 阻塞被【清除】！`
@@ -147,7 +137,7 @@ function createWorker() {
       // log('ping')
 
       curWorker.worker.send({ state: `ping#${curWorker.pid}` })
-    }, clusterConfig.PING_PONG_INTERVAL)
+    }, 1000)
     console.log(`[主进程]：子进程(${curWorker.id}) 已【启动】！`)
   })
 
@@ -185,6 +175,9 @@ function createWorker() {
   return workers[curWorker.id]
 }
 
+
+
+
 /* 主进程事件 */
 // 未知错误 记录日志并退出进程
 process.on('uncaughtException', (err, origin) => {
@@ -213,6 +206,7 @@ process.on('exit', (code) => {
 cluster.on('fork', (worker) => {
   console.log(`[主进程]：开始【创建】子进程(${worker.id})...`)
 })
+
 // 子进程退出
 cluster.on('exit', (worker, code, signal) => {
   console.log(
@@ -222,10 +216,11 @@ cluster.on('exit', (worker, code, signal) => {
   handleWebSocketQueue.splice(getHandleWorkerPos(worker.id, 'WebSocket'), 1)
   delete workers[worker.id]
   // 根据当前子进程数是否超限来进行创建
-  if (Object.values(workers).length < clusterConfig.MAX_CHILD_WORKER_COUNT) {
+  if (Object.values(workers).length < MAX_CHILD_WORKER_COUNT) {
     // 恢复子进程
     setTimeout(() => {
-      createWorker(tcpServer)
-    }, clusterConfig.RECOVERY_DELAY)
+      createWorker(tcpSocket)
+    }, 2000)
   }
 })
+

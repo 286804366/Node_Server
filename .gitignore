@@ -1,6 +1,7 @@
 node_modules
 .vscode
 .gitignore
-push.sh
-config.js
+mqttConfig.js
 log
+index1.js
+config.js
