@@ -42,7 +42,7 @@ async function get(type, user, device) {
 async function public(type, user) {
   switch (type) {
     case 'deviceList':
-      return Redis.public(user, type)
+      return await Redis.public(user, type)
     default:
       return false
   }
@@ -111,7 +111,7 @@ module.exports = (router) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
     if (body.user) {
-      const res = public(type, body.user)
+      const res = await public(type, body.user)
       if (res) {
         return (ctx.body = {
           state: 0,
