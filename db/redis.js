@@ -49,7 +49,7 @@ redisClient.on('error', function (error) {
 })
 
 /* 数据库 curd */
-// 校验设备是否存在,存在则获取设备密钥
+// 校验设备是否存在用户名下,存在则获取设备密钥
 async function checkDevice(user, device) {
   let deviceList = await redisClient.hget(user, 'deviceList')
   if (deviceList) {
@@ -63,8 +63,16 @@ async function checkDevice(user, device) {
   return false
 }
 
+// 校验设备是否已注册过
+async function checkDeviceRegister(device) {
+    return await redisClient.hget(`device:${device}`, 'exists')
+}
+
 // 修改设备
 async function changeDevice(user, secret, type, name) {
+  // 设备未登记过，无法绑定
+  if(!checkDeviceRegister(secret)) return false
+
   let deviceList = await redisClient.hget(user, 'deviceList')
   let flag
   if (deviceList) {
