@@ -79,6 +79,34 @@ async function modifyDefaultConfig(user, device, config) {
   return false
 }
 
+// 获取默认配置
+async function getDefaultConfig(user, device) {
+  // 用户名下存在设备 user:{name}:{number}
+  if (await redisClient.hget(user, `device:${device}`)) {
+    return await redisClient.hget(`user:${user}:${device}`, 'defaultConfig')
+  }
+  return false
+}
+
+// 获取需同步的数据
+async function getSyncData(user, device) {
+  // 用户名下存在设备 user:{name}:{number}
+  if (await redisClient.hget(user, `device:${device}`)) {
+    return await redisClient.hget(`user:${user}:${device}`, 'syncData')
+  }
+  return false
+}
+
+// 小车连接控制
+async function changeRunningState(user, device, operate,state) {
+  // 用户名下存在设备 user:{name}:{number}
+  if (await redisClient.hget(user, `device:${device}`)) {
+    await redisClient.hset(`user:${user}:${device}`, operate,state)
+    return true
+  }
+  return false
+}
+
 // 校验用户存在
 async function checkHasUser(user) {
   return await redisClient.hexists(user, 'exists')
@@ -129,4 +157,7 @@ module.exports = {
   createToken,
   modifyBaudRate,
   modifyDefaultConfig,
+  changeRunningState,
+  getDefaultConfig,
+  getSyncData
 }

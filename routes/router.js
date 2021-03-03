@@ -143,7 +143,7 @@ function putMove(command) {
   return sendDataByTCP(command)
 }
 
-// 腾讯sdk数据状态接口
+// 腾讯sdk数据状态接口，通过websocket推送到客户端
 router.post('/receive', async (ctx, next) => {
   const body = ctx.request.body
   if (body.payload && body.payload.params) {
@@ -279,13 +279,34 @@ router.post('/modifyDefaultConfig', async (ctx, next) => {
     if (await Redis.modifyDefaultConfig(body.user, body.device, body.config)) {
       return (ctx.body = {
         state: 0,
-        message: '修改成功',
+        message: '保存成功',
       })
     }
   }
   ctx.body = {
     state: 1,
-    message: '修改失败',
+    message: '保存失败',
+  }
+})
+
+// 小车连接控制
+router.post('/controlRunning/:operate', async (ctx, next) => {
+  const body = ctx.request.body
+  const operate = ctx.request.params.operate
+  if (body.user && body.device) {
+    if (
+      (await Redis.changeRunningState(body.user, body.device, operate),
+      body.state)
+    ) {
+      return (ctx.body = {
+        state: 0,
+        message: '操作成功',
+      })
+    }
+  }
+  ctx.body = {
+    state: 1,
+    message: '操作失败',
   }
 })
 
@@ -300,7 +321,7 @@ router.post('/modifyData/:field', async (ctx, next) => {
     ) {
       return (ctx.body = {
         state: 0,
-        message: '修改成功',
+        message: '保存成功',
       })
     }
     if (
@@ -309,13 +330,51 @@ router.post('/modifyData/:field', async (ctx, next) => {
     ) {
       return (ctx.body = {
         state: 0,
-        message: '修改成功',
+        message: '保存成功',
       })
     }
   }
   ctx.body = {
     state: 1,
-    message: '修改失败',
+    message: '保存失败',
+  }
+})
+
+// 获取默认配置
+router.post('/syncData', async (ctx, next) => {
+  const body = ctx.request.body
+  if (body.user && body.device) {
+    const res = await Redis.getSyncData(body.user, body.device)
+    if (res) {
+      return (ctx.body = {
+        state: 0,
+        message: '获取成功',
+        data:res
+      })
+    }
+  }
+  ctx.body = {
+    state: 1,
+    message: '获取失败',
+  }
+})
+
+// 获取需同步的数据
+router.post('/defaultConfig', async (ctx, next) => {
+  const body = ctx.request.body
+  if (body.user && body.device) {
+    const res = await Redis.getDefaultConfig(body.user, body.device)
+    if (res) {
+      return (ctx.body = {
+        state: 0,
+        message: '获取成功',
+        data:res
+      })
+    }
+  }
+  ctx.body = {
+    state: 1,
+    message: '获取失败',
   }
 })
 

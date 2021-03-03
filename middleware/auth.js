@@ -5,10 +5,10 @@ const { SECRET } = require('../config/config')
 // redis数据库
 const Redis = require('../db/redis')
 
-module.exports =async (ctx, next) => {
+module.exports = async (ctx, next) => {
   const noPass = {
     state: -1,
-    message: 'token无效,请重新登录',
+    message: '登录已过期,请重新登录',
   }
   const passUrl = ['/login', '/register']
   // 公共路径
