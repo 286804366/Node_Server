@@ -62,7 +62,7 @@ tcpServer.on('connection', (socket) => {
     if (msg.indexOf(dataBuffer) === 0) {
       const str = msg.toString()
       const info = JSON.parse(str)
-      redisClient.HSETNX(
+      redisClient.hsetnx(
         `device:${info.car_number}`,
         'car_number',
         info.car_number

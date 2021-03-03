@@ -10,7 +10,7 @@ module.exports = async (ctx, next) => {
     state: -1,
     message: '登录已过期,请重新登录',
   }
-  const passUrl = ['/login', '/register']
+  const passUrl = ['/login', '/register','/receive']
   // 公共路径
   if (passUrl.includes(ctx.request.url)) {
     return next()
