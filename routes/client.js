@@ -49,8 +49,8 @@ async function public(type, user) {
 }
 
 // 设备管理
-async function manage(type, user, secret, newName) {
-  return await Redis.manage(user, secret, type, newName)
+async function manage(type, user, secret, name) {
+  return await Redis.manage(user, secret, type, name)
 }
 
 module.exports = (router) => {

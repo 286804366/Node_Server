@@ -66,24 +66,29 @@ async function checkDevice(user, device) {
 // 修改设备
 async function changeDevice(user, secret, type, name) {
   let deviceList = await redisClient.hget(user, 'deviceList')
+  let flag
   if (deviceList) {
     deviceList = JSON.parse(deviceList) || []
-
-    if (type === 'add') {
+    for (let i = 0; i < deviceList.length; i++) {
+      if (type === 'delete' && deviceList[i].secret === secret) {
+        deviceList.splice(i, 1)
+        flag = 1
+        break
+      } else if (type === 'edit') {
+        if (deviceList[i].name === name || deviceList[i].secret === secret) {
+          deviceList[i].name = name
+          deviceList[i].secret = secret || deviceList[i].secret
+          flag = 1
+          break
+        }
+      }
+    }
+    // 未处理，则新增
+    if (!flag) {
       deviceList.push({
         name: name,
         secret: secret,
       })
-    } else {
-      for (let i = 0; i < deviceList.length; i++) {
-        if (type === 'delete') {
-          deviceList.splice(i, 1)
-          break
-        } else if (type === 'edit') {
-          deviceList[i].name = name
-          break
-        }
-      }
     }
     await redisClient.hset(user, `deviceList`, JSON.stringify(deviceList))
     return await redisClient.hget(user, `deviceList`)
@@ -136,17 +141,8 @@ async function public(user, field) {
 async function manage(user, secret, field, name) {
   switch (field) {
     case 'delete':
-      await redisClient.hset(`device:${secret}`, 'exists', '')
-      return await changeDevice(user, secret, 'delete')
-    case 'add':
-      await redisClient.hsetnx(
-        `device:${secret}`,
-        'exists',
-        new Date().toLocaleString()
-      )
-      return await changeDevice(user, secret, 'add', name)
     case 'edit':
-      return await changeDevice(user, secret, 'edit', name)
+      return await changeDevice(user, secret, field, name)
     default:
       return false
   }
