@@ -15,7 +15,9 @@ const wsConfig = {
 const tcpConfig = {
   host:'0.0.0.0',
   port:8888,
-  timeout:1000*60
+  timeout:1000*60,
+  // tcp 服务器重启延时
+  restartTimeout:1000*2
 }
 
 // http 服务器配置

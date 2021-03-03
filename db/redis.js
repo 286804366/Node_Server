@@ -48,65 +48,104 @@ redisClient.on('error', function (error) {
   })
 })
 
-// 修改同步字段
-async function modifySyncData(user, device, fields) {
-  if (!(fields instanceof Array)) return false
-  // 用户名下存在设备 user:{name}:{number}
-  if (await redisClient.hget(user, `device:${device}`)) {
-    await redisClient.hset(`user:${user}:${device}`, 'syncData', fields.join())
+/* 数据库 curd */
+// 校验设备是否存在,存在则获取设备密钥
+async function checkDevice(user, device) {
+  return await redisClient.hget(user, `device:${device}`)
+}
+
+// 修改设备
+async function changeDevice(user, secret, type, name) {
+  let deviceList = await redisClient.hget(user, 'deviceList')
+  if (deviceList) {
+    deviceList = JSON.parse(deviceList) || []
+
+    if (type === 'add') {
+      deviceList.push({
+        name: name,
+        secret: secret,
+      })
+    } else {
+      for (let i = 0; i < deviceList.length; i++) {
+        if (type === 'delete') {
+          deviceList.splice(i, 1)
+          break
+        } else if (type === 'edit') {
+          deviceList[i].name = name
+          break
+        }
+      }
+    }
+    await redisClient.hset(user, `deviceList`, JSON.stringify(deviceList))
+    return await redisClient.hget(user, `deviceList`)
+  }
+  return false
+}
+
+// 通用修改设备属性
+async function modify(type, user, device, field, data) {
+  // 用户名设备 device:{secret}
+  const secret = checkDevice(user, device)
+  if (secret) {
+    const fun = redisClient[type].bind(this, `device:${secret}`, field)
+    switch (field) {
+      case 'data':
+        await fun(data.join())
+        break
+      case 'baudRate':
+        await fun(data)
+        break
+      case 'default':
+        await fun(JSON.stringify(data))
+        break
+      default:
+        return false
+    }
+
     return true
   }
   return false
 }
 
-// 修改wifi2波特率
-async function modifyBaudRate(user, device, baudRate) {
-  // 用户名下存在设备 user:{name}:{number}
-  if (await redisClient.hget(user, `device:${device}`)) {
-    await redisClient.hset(`user:${user}:${device}`, 'baudRate', baudRate)
-    return true
+// 通用获取设备属性
+async function get(type, user, device, field) {
+  // 用户设备 device:{secret}
+  const secret = checkDevice(user, device)
+  if (secret) {
+    return await redisClient[type](`device:${secret}`, field)
   }
   return false
 }
 
-// 修改默认配置
-async function modifyDefaultConfig(user, device, config) {
-  // 用户名下存在设备 user:{name}:{number}
-  if (await redisClient.hget(user, `device:${device}`)) {
-    await redisClient.hset(`user:${user}:${device}`, 'defaultConfig', JSON.stringify(config))
-    return true
-  }
-  return false
+// 通用获取公共属性
+async function public(type, user, field) {
+  // 获取用户属性
+  return await redisClient[type](user, field)
 }
 
-// 获取默认配置
-async function getDefaultConfig(user, device) {
-  // 用户名下存在设备 user:{name}:{number}
-  if (await redisClient.hget(user, `device:${device}`)) {
-    return await redisClient.hget(`user:${user}:${device}`, 'defaultConfig')
+// 设备管理
+async function manage(user, secret, field, name) {
+  switch (field) {
+    case 'delete':
+      await redisClient.hset(`device:${secret}`, 'exists', '')
+      return await this.changeDevice(user, secret, 'delete')
+    case 'add':
+      await redisClient.hsetnx(
+        `device:${secret}`,
+        'exists',
+        new Date().toLocaleString()
+      )
+      return await this.changeDevice(user, secret, 'add', name)
+    case 'edit':
+      return await this.changeDevice(user, secret, 'edit', name)
+    default:
+      return false
   }
-  return false
+  // 获取用户属性
+  return await redisClient[type](`device:${secret}`, field)
 }
 
-// 获取需同步的数据
-async function getSyncData(user, device) {
-  // 用户名下存在设备 user:{name}:{number}
-  if (await redisClient.hget(user, `device:${device}`)) {
-    return await redisClient.hget(`user:${user}:${device}`, 'syncData')
-  }
-  return false
-}
-
-// 小车连接控制
-async function changeRunningState(user, device, operate,state) {
-  // 用户名下存在设备 user:{name}:{number}
-  if (await redisClient.hget(user, `device:${device}`)) {
-    await redisClient.hset(`user:${user}:${device}`, operate,state)
-    return true
-  }
-  return false
-}
-
+/* 登录注册数据库操作 */
 // 校验用户存在
 async function checkHasUser(user) {
   return await redisClient.hexists(user, 'exists')
@@ -123,8 +162,8 @@ async function registerAccount(user, password) {
   if (!(await redisClient.hset(user, 'password', password))) {
     return false
   }
-  // 标记为存在
-  if (!(await redisClient.hset(user, 'exists', 'true'))) {
+  // 标记为存在,并记录创建时间
+  if (!(await redisClient.hset(user, 'exists', new Date().toLocaleString()))) {
     return false
   }
   return true
@@ -149,15 +188,13 @@ async function createToken(token, user) {
 
 module.exports = {
   redisClient,
-  modifySyncData,
   checkHasUser,
   checkUserPass,
   registerAccount,
   checkToken,
   createToken,
-  modifyBaudRate,
-  modifyDefaultConfig,
-  changeRunningState,
-  getDefaultConfig,
-  getSyncData
+  modify,
+  get,
+  public,
+  manage,
 }

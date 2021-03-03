@@ -12,8 +12,6 @@ const notFind = require('../middleware/404')
 // token 校验中间键
 const auth = require('../middleware/auth')
 
-// 盐
-const { SECRET } = require('../config/config')
 // 导入路由
 const router = require('../routes/router')
 

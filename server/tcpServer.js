@@ -1,7 +1,10 @@
 /* TCP Server */
 const tcp = require('net')
 /* WebSocket Server */
-const {sendDataByWebSocket,hasWebSocketConnect} = require('./webSocketServer')
+const {
+  sendDataByWebSocket,
+  hasWebSocketConnect,
+} = require('./webSocketServer')
 /* redis */
 const { redisClient } = require('../db/redis')
 
@@ -10,18 +13,18 @@ const { tcpConfig } = require('../config/serverConfig.js')
 
 // tcp连接实例
 let tcpSocket = null
+// 剩余buffer缓冲
 let resBuffer = Buffer.from('')
 // start buf
-let startBuffer = Buffer.from(Uint8Array.of(255, 216))
+const startBuffer = Buffer.from(Uint8Array.of(255, 216))
 // end buf
-let endBuffer = Buffer.from(Uint8Array.of(255, 217))
+const endBuffer = Buffer.from(Uint8Array.of(255, 217))
 // invalid buf
-let invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
+const invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
 // data buf
-let dataBuffer = Buffer.from(Uint8Array.of(123)) // {
+const dataBuffer = Buffer.from(Uint8Array.of(123)) // {
 
 // 创建 tcp 服务器
-// let tcpServer = tcp.createServer({ pauseOnConnect: true })
 let tcpServer = tcp.createServer()
 
 // tcp 服务器绑定端口，并开始监听
@@ -29,17 +32,17 @@ tcpServer.listen(tcpConfig.port, tcpConfig.host)
 
 // tcp 服务器开始监听触发
 tcpServer.on('listening', () => {
-  const address = tcpServer.address()
+  const {address,port} = tcpServer.address()
   console.log(
-    `[主进程]：启动【TCP】服务器 监听 ${address.address}:${address.port}`
+    `[主进程]：启动【TCP】服务器 监听 ${address}:${port}`
   )
 })
 
 // 收到连接，进行分发个进程
 tcpServer.on('connection', (socket) => {
-  const rinfo = socket.address()
+  const {address,port} = socket.address()
   console.log(
-    `[主进程]：建立新的 TCP 连接，远程客户端地址 ${rinfo.address}:${rinfo.port}`
+    `[主进程]：建立新的 TCP 连接，远程客户端地址 ${address}:${port}`
   )
   // 保持连接实例
   tcpSocket = socket
@@ -47,27 +50,30 @@ tcpServer.on('connection', (socket) => {
 
   // 设置连接超时时间
   socket.setTimeout(tcpConfig.timeout)
+
   // 连接超时
   socket.on('timeout', () => {
     console.log(
-      `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [连接超时准备关闭]`
+      `[主进程]：远程客户端 ${address}:${port} [连接超时准备关闭]`
     )
     socket.end()
     socket.destroy()
   })
+
   // tcp 服务器绑定端口，并开始监听
   socket.on('data', (msg) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 串口5发送到服务器数据
     if (msg.indexOf(dataBuffer) === 0) {
-      const str = msg.toString()
-      const info = JSON.parse(str)
+      const data = JSON.parse(msg.toString())
+      // 数据库保存设备，以设备密钥为键，并记录创建时间
       redisClient.hsetnx(
-        `device:${info.car_number}`,
-        'car_number',
-        info.car_number
+        `device:${data.secret}`,
+        'exists',
+        (new Date()).toLocaleString()
       )
     } else {
+      // 未检测到有客户端连接，则无需处理转发图像数据
       if (!hasWebSocketConnect()) return
       // 处理jpg数据流，还原成帧图像流
       handleImgData(msg)
@@ -77,7 +83,7 @@ tcpServer.on('connection', (socket) => {
   // 连接出错
   socket.on('error', () => {
     console.log(
-      `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [客户端错误准备关闭连接]`
+      `[主进程]：远程客户端 ${address}:${port} [客户端错误准备关闭连接]`
     )
     // 销毁连接
     socket.destroy()
@@ -85,18 +91,18 @@ tcpServer.on('connection', (socket) => {
   // 连接结束
   socket.on('end', () => {
     console.log(
-      `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [远程客户端主动请求关闭连接]`
+      `[主进程]：远程客户端 ${address}:${port} [远程客户端主动请求关闭连接]`
     )
   })
   // 连接关闭
   socket.on('close', (err) => {
     if (err) {
       console.log(
-        `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [发生传输错误关闭连接]`
+        `[主进程]：远程客户端 ${address}:${port} [发生传输错误关闭连接]`
       )
     } else {
       console.log(
-        `[主进程]：远程客户端 ${rinfo.address}:${rinfo.port} [关闭连接]`
+        `[主进程]：远程客户端 ${address}:${port} [关闭连接]`
       )
     }
   })
@@ -110,11 +116,14 @@ tcpServer.on('error', () => {
 // tcp 服务器关闭
 tcpServer.on('close', () => {
   console.log(`[主进程]：【TCP】服务器 关闭`)
-  // // 重启tcp服务器
-  // tcpServer = tcp.createServer({ pauseOnConnect: true })
-  // // tcp 服务器绑定端口，并开始监听
-  // tcpServer.listen(8088, '192.168.1.6')
-  // console.log(`[主进程]：重启【TCP】服务器`)
+
+  // 2s后重启tcp服务器
+  setTimeout(() => {
+    tcpServer = tcp.createServer()
+    // tcp 服务器绑定端口，并开始监听
+    tcpServer.listen(tcpConfig.port, tcpConfig.host)
+    console.log(`[主进程]：重启【TCP】服务器`)
+  }, tcpConfig.restartTimeout)
 })
 
 // 发送拦截
@@ -209,21 +218,20 @@ function handleImgData(msg) {
   // 结束
 }
 
-
 // 通过tcp发送数据给设备
-function sendDataByTCP(data){
-  if(tcpSocket){
+function sendDataByTCP(data) {
+  if (tcpSocket) {
     tcpSocket.write(data)
   }
 }
 
 // 检测是否有tcp连接
-function hasTCPConnect(){
+function hasTCPConnect() {
   return tcpSocket
 }
 
 module.exports = {
   tcpServer,
   sendDataByTCP,
-  hasTCPConnect
+  hasTCPConnect,
 }
