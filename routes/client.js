@@ -59,7 +59,7 @@ module.exports = (router) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
     if (body.user && body.device) {
-      if (modify(type, body.user, body.device, body.data)) {
+      if (await modify(type, body.user, body.device, body.data)) {
         return (ctx.body = {
           state: 0,
           message: '保存成功',
@@ -91,7 +91,7 @@ module.exports = (router) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
     if (body.user && body.device) {
-      const res = get(type, body.user, body.device)
+      const res =await get(type, body.user, body.device)
       if (res) {
         return (ctx.body = {
           state: 0,
@@ -132,7 +132,7 @@ module.exports = (router) => {
     const type = ctx.request.params.type
     // 此device为设备密钥
     if (body.user && body.device) {
-      const res = manage(type, body.user, body.device, body.name)
+      const res =await manage(type, body.user, body.device, body.name)
       if (res) {
         return (ctx.body = {
           state: 0,
