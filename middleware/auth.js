@@ -16,7 +16,9 @@ module.exports = async (ctx, next) => {
     return next()
   }
   // 校验token
-  const token = ctx.request.headers['authorization'].split(' ')[1]
+  if(ctx.request.headers['authorization']){
+    var token = ctx.request.headers['authorization'].split(' ')[1]
+  }
   if (token) {
     try {
       var { time, maxAge } = jwt.verify(token, SECRET)
