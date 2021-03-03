@@ -71,7 +71,7 @@ async function checkDeviceRegister(device) {
 // 修改设备
 async function changeDevice(user, secret, type, name) {
   // 设备未登记过，无法绑定
-  if(!checkDeviceRegister(secret)) return false
+  if(!await checkDeviceRegister(secret)) return false
 
   let deviceList = await redisClient.hget(user, 'deviceList')
   let flag
