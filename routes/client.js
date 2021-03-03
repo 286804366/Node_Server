@@ -42,7 +42,7 @@ async function get(type, user, device) {
 async function public(type, user) {
   switch (type) {
     case 'deviceList':
-      return await Redis.public('hget', user, type)
+      return Redis.public(user, type)
     default:
       return false
   }

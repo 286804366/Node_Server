@@ -118,9 +118,9 @@ async function get(type, user, device, field) {
 }
 
 // 通用获取公共属性
-async function public(type, user, field) {
+async function public(user, field) {
   // 获取用户属性
-  return await redisClient[type](user, field)
+  return await redisClient.hget(user, field)
 }
 
 // 设备管理
