@@ -21,7 +21,7 @@ async function modify(type, user, device, data) {
     case 'entryBootloader':
     case 'resetMqtt':
     case 'resetCloudControl':
-      return await Redis.modify('hset', user, device, type, data)
+      return await Redis.modify(user, device, type, data)
     default:
       return false
   }
@@ -32,7 +32,7 @@ async function get(type, user, device) {
   switch (type) {
     case 'sync':
     case 'default':
-      return await Redis.get('hget', user, device, type)
+      return await Redis.get(user, device, type)
     default:
       return false
   }
@@ -91,7 +91,7 @@ module.exports = (router) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
     if (body.user && body.device) {
-      const res =await get(type, body.user, body.device)
+      const res = await get(type, body.user, body.device)
       if (res) {
         return (ctx.body = {
           state: 0,
@@ -132,7 +132,7 @@ module.exports = (router) => {
     const type = ctx.request.params.type
     // 此device为设备密钥
     if (body.user && body.device) {
-      const res =await manage(type, body.user, body.device, body.name)
+      const res = await manage(type, body.user, body.device, body.name)
       if (res) {
         return (ctx.body = {
           state: 0,

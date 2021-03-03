@@ -51,7 +51,16 @@ redisClient.on('error', function (error) {
 /* 数据库 curd */
 // 校验设备是否存在,存在则获取设备密钥
 async function checkDevice(user, device) {
-  return await redisClient.hget(user, `device:${device}`)
+  let deviceList = await redisClient.hget(user, 'deviceList')
+  if (deviceList) {
+    deviceList = JSON.parse(deviceList) || []
+    for (const car of deviceList) {
+      if (car.name === device) {
+        return car.secret
+      }
+    }
+  }
+  return false
 }
 
 // 修改设备
@@ -87,7 +96,7 @@ async function modify(type, user, device, field, data) {
   // 用户名设备 device:{secret}
   const secret = checkDevice(user, device)
   if (secret) {
-    const fun = redisClient[type].bind(this, `device:${secret}`, field)
+    const fun = redisClient.hset.bind(this, `device:${secret}`, field)
     switch (field) {
       case 'data':
         await fun(data.join())
@@ -108,11 +117,11 @@ async function modify(type, user, device, field, data) {
 }
 
 // 通用获取设备属性
-async function get(type, user, device, field) {
+async function get(user, device, field) {
   // 用户设备 device:{secret}
   const secret = checkDevice(user, device)
   if (secret) {
-    return await redisClient[type](`device:${secret}`, field)
+    return await redisClient.hget(`device:${secret}`, field)
   }
   return false
 }
@@ -128,21 +137,19 @@ async function manage(user, secret, field, name) {
   switch (field) {
     case 'delete':
       await redisClient.hset(`device:${secret}`, 'exists', '')
-      return await this.changeDevice(user, secret, 'delete')
+      return await changeDevice(user, secret, 'delete')
     case 'add':
       await redisClient.hsetnx(
         `device:${secret}`,
         'exists',
         new Date().toLocaleString()
       )
-      return await this.changeDevice(user, secret, 'add', name)
+      return await changeDevice(user, secret, 'add', name)
     case 'edit':
-      return await this.changeDevice(user, secret, 'edit', name)
+      return await changeDevice(user, secret, 'edit', name)
     default:
       return false
   }
-  // 获取用户属性
-  return await redisClient[type](`device:${secret}`, field)
 }
 
 /* 登录注册数据库操作 */
