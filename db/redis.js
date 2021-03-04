@@ -86,14 +86,18 @@ async function changeDevice(type, user, secret, name) {
   let flag
   // 不存在设备列表则创建
   await redisClient.hsetnx(user, 'deviceList', JSON.stringify([]))
+  // 获取并解析设备列表
   let deviceList = await redisClient.hget(user, 'deviceList')
   deviceList = JSON.parse(deviceList) || []
+
   for (let i = 0; i < deviceList.length; i++) {
+    //删除设备
     if (type === 'delete' && deviceList[i].secret === secret) {
-      deviceList.splice(i, 1)
+      deviceList.splice(i, 1) // 解绑设备与用户
       flag = 1
       break
     } else if (type === 'edit') {
+      // 编辑设备，已存在过
       if (deviceList[i].name === name || deviceList[i].secret === secret) {
         deviceList[i].name = name
         deviceList[i].secret = secret || deviceList[i].secret
@@ -109,6 +113,7 @@ async function changeDevice(type, user, secret, name) {
       secret: secret,
     })
   }
+  // 重新设置用户绑定的设备列表
   await redisClient.hset(user, `deviceList`, JSON.stringify(deviceList))
   return await redisClient.hget(user, `deviceList`)
 }
@@ -118,7 +123,6 @@ async function modify(type, user, secret, data) {
   // 用户名设备 device:{secret}
   secret = checkDevice(user, secret)
   if (secret) {
-    const fun = redisClient.hset.bind(this, `device:${secret}`, type)
     switch (type) {
       case 'baudRate':
       case 'connectMqtt':
@@ -126,13 +130,13 @@ async function modify(type, user, secret, data) {
       case 'entryBootloader':
       case 'resetMqtt':
       case 'resetCloudControl':
-        await fun(data)
+        await redisClient.hset(`device:${secret}`, type, data)
         break
       case 'data':
-        await fun(data.join())
+        await redisClient.hset(`device:${secret}`, type, data.join())
         break
       case 'default':
-        await fun(JSON.stringify(data))
+        await redisClient.hset(`device:${secret}`, type, JSON.stringify(data))
         break
       default:
         return false
