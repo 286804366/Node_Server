@@ -221,6 +221,7 @@ module.exports = {
   checkToken,
   createToken,
   modify,
+  checkDevice,
   get,
   public,
   manage,
