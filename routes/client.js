@@ -21,7 +21,7 @@ async function modify(type, user, secret, data) {
     case 'entryBootloader':
     case 'resetMqtt':
     case 'resetCloudControl':
-      return await Redis.modify(user, secret, type, data)
+      return await Redis.modify(type, user, secret, data)
     default:
       return false
   }
@@ -32,7 +32,7 @@ async function get(type, user, device) {
   switch (type) {
     case 'sync':
     case 'default':
-      return await Redis.get(user, device, type)
+      return await Redis.get(type, user, device)
     default:
       return false
   }
@@ -42,12 +42,11 @@ async function get(type, user, device) {
 async function public(type, user) {
   switch (type) {
     case 'deviceList':
-      return await Redis.public(user, type)
+      return await Redis.public(type, user)
     default:
       return false
   }
 }
-
 
 module.exports = (router) => {
   // 通用修改设备属性
@@ -72,19 +71,19 @@ module.exports = (router) => {
   router.post('/upload/:type', async (ctx, next) => {
     const files = ctx.request.files
     const body = ctx.request.body
-    if (files.file.path&&body.secret) {
+    if (files.file.path && body.secret) {
       fs.readFile(files.file.path, (err, chunk) => {
-        sendDataByTCP(body.secret,chunk)
+        sendDataByTCP(body.secret, chunk)
       })
-      return ctx.body = {
+      return (ctx.body = {
         state: 0,
         message: '上传成功',
-      }
+      })
     }
-    return ctx.body = {
+    return (ctx.body = {
       state: 1,
       message: '上传失败',
-    }
+    })
   })
 
   // 通用获取设备属性

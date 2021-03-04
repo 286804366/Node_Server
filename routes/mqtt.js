@@ -169,7 +169,7 @@ module.exports = (router) => {
         isDebounce = false
       }, body.time)
     }
-    console.log(`@${JSON.stringify(body.data)}$`)
+    // console.log(`@${JSON.stringify(body.data)}$`)
     putMove(body.secret,`@@@@@@${JSON.stringify(body.data)}$`)
     ctx.body = {
       state: 0,

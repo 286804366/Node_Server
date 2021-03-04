@@ -79,7 +79,6 @@ async function registerDevice(secret) {
   return true
 }
 
-
 // 修改设备
 async function changeDevice(type, user, secret, name) {
   // 设备未登记过，无法绑定
@@ -115,17 +114,22 @@ async function changeDevice(type, user, secret, name) {
 }
 
 // 通用修改设备属性
-async function modify(type, user, secret, field, data) {
+async function modify(type, user, secret, data) {
   // 用户名设备 device:{secret}
   secret = checkDevice(user, secret)
   if (secret) {
-    const fun = redisClient.hset.bind(this, `device:${secret}`, field)
-    switch (field) {
+    const fun = redisClient.hset.bind(this, `device:${secret}`, type)
+    switch (type) {
+      case 'baudRate':
+      case 'connectMqtt':
+      case 'connectCloudControl':
+      case 'entryBootloader':
+      case 'resetMqtt':
+      case 'resetCloudControl':
+        await fun(data)
+        break
       case 'data':
         await fun(data.join())
-        break
-      case 'baudRate':
-        await fun(data)
         break
       case 'default':
         await fun(JSON.stringify(data))
@@ -133,26 +137,25 @@ async function modify(type, user, secret, field, data) {
       default:
         return false
     }
-
     return true
   }
   return false
 }
 
 // 通用获取设备属性
-async function get(user, device, field) {
+async function get(type, user, device) {
   // 用户设备 device:{secret}
   const secret = checkDevice(user, device)
   if (secret) {
-    return await redisClient.hget(`device:${secret}`, field)
+    return await redisClient.hget(`device:${secret}`, type)
   }
   return false
 }
 
 // 通用获取公共属性
-async function public(user, field) {
+async function public(type, user) {
   // 获取用户属性
-  return await redisClient.hget(user, field)
+  return await redisClient.hget(user, type)
 }
 
 // 设备管理
