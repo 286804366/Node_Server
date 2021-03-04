@@ -50,12 +50,12 @@ redisClient.on('error', function (error) {
 
 /* 数据库 curd */
 // 校验设备是否存在用户名下,存在则获取设备密钥
-async function checkDevice(user, device) {
+async function checkDevice(user, secret) {
   let deviceList = await redisClient.hget(user, 'deviceList')
   if (deviceList) {
     deviceList = JSON.parse(deviceList) || []
     for (const car of deviceList) {
-      if (car.name === device) {
+      if (car.secret === secret) {
         return car.secret
       }
     }
@@ -64,8 +64,8 @@ async function checkDevice(user, device) {
 }
 
 // 校验设备是否已注册过
-async function checkDeviceRegister(device) {
-    return await redisClient.hget(`device:${device}`, 'exists')
+async function checkDeviceRegister(secret) {
+    return await redisClient.hexists(`device:${secret}`, 'exists')
 }
 
 // 修改设备
@@ -105,9 +105,9 @@ async function changeDevice(user, secret, type, name) {
 }
 
 // 通用修改设备属性
-async function modify(type, user, device, field, data) {
+async function modify(type, user, secret, field, data) {
   // 用户名设备 device:{secret}
-  const secret = checkDevice(user, device)
+  secret = checkDevice(user, secret)
   if (secret) {
     const fun = redisClient.hset.bind(this, `device:${secret}`, field)
     switch (field) {
@@ -155,6 +155,7 @@ async function manage(user, secret, field, name) {
       return false
   }
 }
+
 
 /* 登录注册数据库操作 */
 // 校验用户存在

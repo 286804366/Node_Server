@@ -1,8 +1,8 @@
 const fs = require('fs')
 // 导入tcp发送数据特权方法
 const { sendDataByTCP } = require('../server/tcpServer')
-// 导入websocket发送数据特权方法
-const { sendDataByWebSocket } = require('../server/webSocketServer')
+// // 导入websocket发送数据特权方法
+// const { sendDataByWebSocket } = require('../server/webSocketServer')
 // redis数据库
 const Redis = require('../db/redis')
 // token
@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken')
 const config = require('../config/config')
 
 // 通用修改设备属性
-async function modify(type, user, device, data) {
+async function modify(type, user, secret, data) {
   switch (type) {
     case 'data':
     case 'baudRate':
@@ -21,7 +21,7 @@ async function modify(type, user, device, data) {
     case 'entryBootloader':
     case 'resetMqtt':
     case 'resetCloudControl':
-      return await Redis.modify(user, device, type, data)
+      return await Redis.modify(user, secret, type, data)
     default:
       return false
   }
@@ -58,8 +58,8 @@ module.exports = (router) => {
   router.post('/modify/:type', async (ctx, next) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
-    if (body.user && body.device) {
-      if (await modify(type, body.user, body.device, body.data)) {
+    if (body.user && body.secret) {
+      if (await modify(type, body.user, body.secret, body.data)) {
         return (ctx.body = {
           state: 0,
           message: '保存成功',
@@ -130,9 +130,9 @@ module.exports = (router) => {
   router.post('/manage/:type', async (ctx, next) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
-    // 此device为设备密钥
-    if (body.user && body.device) {
-      const res = await manage(type, body.user, body.device, body.name)
+    // 此 secret 为设备密钥
+    if (body.user && body.secret) {
+      const res = await manage(type, body.user, body.secret, body.name)
       if (res) {
         return (ctx.body = {
           state: 0,

@@ -3,7 +3,7 @@ const ws = require('ws')
 // 导入配置
 const { wsConfig } = require('../config/serverConfig.js')
 
-let webSocket = null
+let webSockets = {}
 let wsInterval = 0
 
 /* 创建 webSocket 服务器 */
@@ -21,6 +21,15 @@ function keepConnect() {
   }, wsConfig.connectTimeout)
 }
 
+// 清除连接
+function clearConnect(socket) {
+  for (const key in webSockets) {
+    if (webSockets[key] === socket) {
+      delete webSockets[key]
+    }
+  }
+}
+
 // 开始监听端口
 // webSocket 服务器开启监听事件
 webSocketServer.on('listening', () => {
@@ -30,7 +39,7 @@ webSocketServer.on('listening', () => {
 
 // 接收到连接
 webSocketServer.on('connection', (socket, request) => {
-  webSocket = socket
+  //webSocket = socket
   // console.log(request.headers);
   console.log(`[主进程]：【WebSocket】建立新连接 ${request.headers.host}`)
   // dispatchConnection(socket, `${request.headers.host}`, 'WebSocket')
@@ -39,7 +48,11 @@ webSocketServer.on('connection', (socket, request) => {
   socket.on('message', (str) => {
     console.log(`[主进程]：【WebSocket】收到文本数据 ${str.toString('utf-8')}`)
     // 心跳维持
-    if (str.toString('utf-8') === 'pong') {
+    const strArr = str.toString('utf-8').split(':')
+    if (strArr[0] === 'pong') {
+      // 标记连接
+      socket.secret = strArr[1]
+      webSockets[strArr[1]] = socket
       return setTimeout(() => {
         socket.send('ping')
         socket.isAlive = true
@@ -49,14 +62,13 @@ webSocketServer.on('connection', (socket, request) => {
 
   // WebSocket 连接出错
   socket.on('error', (err) => {
-    webSocket = null
     console.log(`[主进程]：【WebSocket】连接出错`)
     socket.close()
   })
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
     // console.log(JSON.stringify(code), reason)
-    webSocket = null
+    clearConnect(socket)
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
     // process.send({ id: worker.id, type: 'WebSocket' })
@@ -85,20 +97,20 @@ webSocketServer.on('close', () => {
 })
 
 // 通过websocket发送数据
-function sendDataByWebSocket(data){
-  if(webSocket){
-    webSocket.send(data)
+function sendDataByWebSocket(secret, data) {
+  if (webSockets[secret]) {
+    webSockets[secret].send(data)
   }
 }
 
 // 检测是否有websocket连接
-function hasWebSocketConnect(){
-  return webSocket
+function hasWebSocketConnect() {
+  return Object.keys(webSockets).length
 }
 
 // 导出websocket服务器实例和连接实例
 module.exports = {
   webSocketServer,
   sendDataByWebSocket,
-  hasWebSocketConnect
+  hasWebSocketConnect,
 }
