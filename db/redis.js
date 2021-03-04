@@ -68,8 +68,19 @@ async function checkDeviceRegister(secret) {
   return await redisClient.hexists(`device:${secret}`, 'exists')
 }
 
+// 登记小车
+async function registerDevice(secret) {
+  if (await redisClient.hexists(`device:${secret}`, 'exists')) return true
+  await redisClient.hsetnx(
+    `device:${secret}`,
+    'exists',
+    new Date().toLocaleString()
+  )
+  return true
+}
+
 // 修改设备
-async function changeDevice(user, secret, type, name) {
+async function changeDevice(type, user, secret, name) {
   // 设备未登记过，无法绑定
   if (!(await checkDeviceRegister(secret))) return false
   let flag
@@ -144,11 +155,11 @@ async function public(user, field) {
 }
 
 // 设备管理
-async function manage(user, secret, type, name) {
+async function manage(type, user, secret, name) {
   switch (type) {
     case 'delete':
     case 'edit':
-      return await changeDevice(user, secret, type, name)
+      return await changeDevice(type, user, secret, name)
     default:
       return false
   }
@@ -206,4 +217,5 @@ module.exports = {
   get,
   public,
   manage,
+  registerDevice,
 }

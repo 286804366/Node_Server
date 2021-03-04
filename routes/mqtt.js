@@ -134,13 +134,6 @@ function putMove(secret,command) {
   return sendDataByTCP(secret,command)
 }
 
-// 登记小车
-async function registerDevice(secret){
-  if(await Redis.hexists(`device:${secret}`,'exists')) return true
-  await Redis.hsetnx(`device:${secret}`,'exists',(new Date()).toLocaleString())
-  return true
-}
-
 // 校验设备是否存在
 async function checkDevice(secret){
   return await Redis.hexists(`device:${secret}`,'exists')
@@ -153,7 +146,7 @@ module.exports = (router) => {
     const body = ctx.request.body
     if (body.payload && body.payload.params) {
       // 登记设备
-      await registerDevice(body.payload.params.car_secret)
+      await Redis.registerDevice(body.payload.params.car_secret)
       // 同步数据回传给客户端
       sendDataByWebSocket(body.payload.params.car_secret,
         JSON.stringify({

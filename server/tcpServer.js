@@ -6,7 +6,7 @@ const {
   hasWebSocketConnect,
 } = require('./webSocketServer')
 /* redis */
-const { redisClient } = require('../db/redis')
+const Redis = require('../db/redis')
 
 // 导入配置
 const { tcpConfig } = require('../config/serverConfig.js')
@@ -32,18 +32,14 @@ tcpServer.listen(tcpConfig.port, tcpConfig.host)
 
 // tcp 服务器开始监听触发
 tcpServer.on('listening', () => {
-  const {address,port} = tcpServer.address()
-  console.log(
-    `[主进程]：启动【TCP】服务器 监听 ${address}:${port}`
-  )
+  const { address, port } = tcpServer.address()
+  console.log(`[主进程]：启动【TCP】服务器 监听 ${address}:${port}`)
 })
 
 // 收到连接，进行分发个进程
 tcpServer.on('connection', (socket) => {
-  const {address,port} = socket.address()
-  console.log(
-    `[主进程]：建立新的 TCP 连接，远程客户端地址 ${address}:${port}`
-  )
+  const { address, port } = socket.address()
+  console.log(`[主进程]：建立新的 TCP 连接，远程客户端地址 ${address}:${port}`)
   // // 保持连接实例
   // tcpSockets = socket
   // return dispatchConnection(socket, `${rinfo.address}:${rinfo.port}`, 'TCP')
@@ -53,9 +49,7 @@ tcpServer.on('connection', (socket) => {
 
   // 连接超时
   socket.on('timeout', () => {
-    console.log(
-      `[主进程]：远程客户端 ${address}:${port} [连接超时准备关闭]`
-    )
+    console.log(`[主进程]：远程客户端 ${address}:${port} [连接超时准备关闭]`)
     socket.end()
     socket.destroy()
   })
@@ -70,16 +64,13 @@ tcpServer.on('connection', (socket) => {
       socket.secret = car_data.car_secret
       // 标记连接
       tcpSockets[socket.secret] = socket
-      redisClient.hsetnx(
-        `device:${socket.secret}`,
-        'exists',
-        (new Date()).toLocaleString()
-      )
+      // 登记设备
+      Redis.registerDevice(socket.secret)
     } else {
       // 未检测到有客户端连接，则无需处理转发图像数据
       if (!tcpSockets[socket.secret]) return
       // 处理jpg数据流，还原成帧图像流
-      handleImgData(socket.secret,msg)
+      handleImgData(socket.secret, msg)
     }
     //console.log('send img')
   })
@@ -100,7 +91,7 @@ tcpServer.on('connection', (socket) => {
   // 连接关闭
   socket.on('close', (err) => {
     for (const key in tcpSockets) {
-      if (tcpSockets[key]===socket) {
+      if (tcpSockets[key] === socket) {
         delete tcpSockets[key]
       }
     }
@@ -109,9 +100,7 @@ tcpServer.on('connection', (socket) => {
         `[主进程]：远程客户端 ${address}:${port} [发生传输错误关闭连接]`
       )
     } else {
-      console.log(
-        `[主进程]：远程客户端 ${address}:${port} [关闭连接]`
-      )
+      console.log(`[主进程]：远程客户端 ${address}:${port} [关闭连接]`)
     }
   })
 })
@@ -135,15 +124,15 @@ tcpServer.on('close', () => {
 })
 
 // 发送拦截
-function send(secret,msg) {
+function send(secret, msg) {
   // console.log(`------------------------------------------------------------------------------------
   // -----------------\r\n${msg.toString('hex')}\r\n`);
   // 特权方法发送数据
-  sendDataByWebSocket(secret,msg)
+  sendDataByWebSocket(secret, msg)
 }
 
 // 处理图像函数
-function handleImgData(secret,msg) {
+function handleImgData(secret, msg) {
   let startPos = msg.indexOf(startBuffer)
   let endPos = msg.indexOf(endBuffer)
 
@@ -170,7 +159,10 @@ function handleImgData(secret,msg) {
       if (resBuffer.length) {
         // 存在缓存，则拼接缓存，发送新帧
         const res = msg.slice(0, endPos + 4)
-        send(secret,Buffer.concat([resBuffer, res], resBuffer.length + res.length))
+        send(
+          secret,
+          Buffer.concat([resBuffer, res], resBuffer.length + res.length)
+        )
         // 清除缓存，再更新结束标记位置
         resBuffer = Buffer.from('')
       }
@@ -191,9 +183,9 @@ function handleImgData(secret,msg) {
       // 此时都有效，并且是最佳帧
 
       // 发送有效帧
-      send(secret,msg.slice(startPos, endPos + 4))
+      send(secret, msg.slice(startPos, endPos + 4))
       // 之后，开始和结束标记都未知，所以要从头开始判断有效性，可用尾递归进行
-      return handleImgData(secret,msg.slice(endPos + 4))
+      return handleImgData(secret, msg.slice(endPos + 4))
     } else {
       // 结束标记无效，开始标记有效，则找到最尾的开始标记，并保存缓存
       startPos = msg.lastIndexOf(startBuffer, startPos)
@@ -217,7 +209,10 @@ function handleImgData(secret,msg) {
     if (resBuffer.length) {
       const res = msg.slice(0, endPos + 4)
       // 存在缓存，拼接
-      send(secret,Buffer.concat([resBuffer, res], resBuffer.length + res.length))
+      send(
+        secret,
+        Buffer.concat([resBuffer, res], resBuffer.length + res.length)
+      )
       // 清空缓存
       resBuffer = Buffer.from('')
       return
@@ -227,7 +222,7 @@ function handleImgData(secret,msg) {
 }
 
 // 通过tcp发送数据给设备
-function sendDataByTCP(secret,data) {
+function sendDataByTCP(secret, data) {
   if (tcpSockets[secret]) {
     tcpSockets[secret].write(data)
   }

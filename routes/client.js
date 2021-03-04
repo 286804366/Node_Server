@@ -48,10 +48,6 @@ async function public(type, user) {
   }
 }
 
-// 设备管理
-async function manage(type, user, secret, name) {
-  return await Redis.manage(user, secret, type, name)
-}
 
 module.exports = (router) => {
   // 通用修改设备属性
@@ -137,7 +133,7 @@ module.exports = (router) => {
     const type = ctx.request.params.type
     // 此 secret 为设备密钥
     if (body.user && body.secret) {
-      const res = await manage(type, body.user, body.secret, body.name)
+      const res = await Redis.manage(type, body.user, body.secret, body.name)
       if (res) {
         return (ctx.body = {
           state: 0,
