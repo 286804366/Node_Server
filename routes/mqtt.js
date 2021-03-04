@@ -9,8 +9,6 @@ const Redis = require('../db/redis')
 /* 配置文件 */
 const myConfig = require('../config/mqttConfig.js')
 
-// 操作防抖标志
-let isDebounce = false
 
 /* 腾讯sdk */
 const tencentcloud = require('tencentcloud-sdk-nodejs')
@@ -129,15 +127,6 @@ function putProps(params) {
   return tencentClient.PublishMessage(params)
 }
 
-// 小车移动指令，通过透传到wifi2
-function putMove(secret,command) {
-  return sendDataByTCP(secret,command)
-}
-
-// 校验设备是否存在
-async function checkDevice(secret){
-  return await Redis.hexists(`device:${secret}`,'exists')
-}
 
 // 配置mqtt路由
 module.exports = (router) => {
@@ -160,17 +149,18 @@ module.exports = (router) => {
   // 小车移动控制
   router.post('/move', async (ctx, next) => {
     const body = ctx.request.body
-    // 指令防抖
-    if (isDebounce) return (ctx.body = 'debounce')
-    // 防抖
-    if (body.debounce) {
-      isDebounce = true
-      setTimeout(() => {
-        isDebounce = false
-      }, body.time)
+    if(!await Redis.checkDevice(body.user,body.secret)){
+      return ctx.body={
+        state:1,
+        message:'设备未绑定'
+      }
     }
-    // console.log(`@${JSON.stringify(body.data)}$`)
-    putMove(body.secret,`@@@@@@${JSON.stringify(body.data)}$`)
+
+    // 尝试发送指令，如果正在节流中则返回false
+    if(!sendDataByTCP(body.secret,`@@@@@@${JSON.stringify(body.data)}$`),body){
+      return (ctx.body = 'debounce')
+    }
+
     ctx.body = {
       state: 0,
       message: '操作成功',
@@ -188,10 +178,11 @@ module.exports = (router) => {
   // 获取设备单一属性的历史值，用于展示历史数据
   router.post('/historyPropValue', async (ctx, next) => {
     const body = ctx.request.body
-    if(!checkDevice(body.secret)){
+    // 校验设备所属
+    if(!await Redis.checkDevice(body.user,body.secret)){
       return ctx.body={
         state:1,
-        message:'设备未注册'
+        message:'设备未绑定'
       }
     }
     try {
@@ -255,6 +246,12 @@ module.exports = (router) => {
   // 修改属性
   router.put('/putProps', async (ctx, next) => {
     const body = ctx.request.body
+    if(!await Redis.checkDevice(body.user,body.secret)){
+      return ctx.body={
+        state:1,
+        message:'设备未绑定'
+      }
+    }
     try {
       var res = await putProps({
         DeviceName: body.DeviceName,

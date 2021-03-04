@@ -229,10 +229,23 @@ function handleImgData(secret, msg) {
 }
 
 // 通过tcp发送数据给设备
-function sendDataByTCP(secret, data) {
-  if (hasTCPConnect()) {
-    tcpSockets[secret]&&tcpSockets[secret].write(data)
+function sendDataByTCP(secret, data, body) {
+  if (hasTCPConnect() && tcpSockets[secret]) {
+    // 节流中
+    if (tcpSockets[secret].isDebounce) return false
+    // 发送指令
+    tcpSockets[secret].write(data)
+    // 发送指令节流
+    if (body.debounce) {
+      tcpSockets[secret].isDebounce = true
+      setTimeout(() => {
+        if (tcpSockets[secret]) {
+          tcpSockets[secret].isDebounce = false
+        }
+      }, body.time)
+    }
   }
+  return true
 }
 
 // 检测是否有tcp连接
