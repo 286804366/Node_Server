@@ -80,10 +80,14 @@ module.exports = (router) => {
       fs.readFile(files.file.path, (err, chunk) => {
         sendDataByTCP(body.secret,chunk)
       })
+      return ctx.body = {
+        state: 0,
+        message: '上传成功',
+      }
     }
-    ctx.body = {
-      state: 0,
-      message: '上传成功',
+    return ctx.body = {
+      state: 1,
+      message: '上传失败',
     }
   })
 

@@ -69,9 +69,9 @@ tcpServer.on('connection', (socket) => {
       // 数据库保存设备，以设备密钥为键，并记录创建时间
       socket.secret = car_data.car_secret
       // 标记连接
-      tcpSockets[car_data.car_secret] = socket
+      tcpSockets[socket.secret] = socket
       redisClient.hsetnx(
-        `device:${car_data.car_secret}`,
+        `device:${socket.secret}`,
         'exists',
         (new Date()).toLocaleString()
       )
