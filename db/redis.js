@@ -121,7 +121,7 @@ async function changeDevice(type, user, secret, name) {
 // 通用修改设备属性
 async function modify(type, user, secret, data) {
   // 用户名设备 device:{secret}
-  secret = checkDevice(user, secret)
+  secret = await checkDevice(user, secret)
   if (secret) {
     switch (type) {
       case 'baudRate':
@@ -149,7 +149,7 @@ async function modify(type, user, secret, data) {
 // 通用获取设备属性
 async function get(type, user, secret) {
   // 用户设备 device:{secret}
-  if (checkDevice(user, secret)) {
+  if (await checkDevice(user, secret)) {
     return await redisClient.hget(`device:${secret}`, type)
   }
   return false
