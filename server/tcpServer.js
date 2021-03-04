@@ -231,7 +231,7 @@ function handleImgData(secret, msg) {
 // 通过tcp发送数据给设备
 function sendDataByTCP(secret, data) {
   if (hasTCPConnect()) {
-    tcpSockets[secret].write(data)
+    tcpSockets[secret]&&tcpSockets[secret].write(data)
   }
 }
 
