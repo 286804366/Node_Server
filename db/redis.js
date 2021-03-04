@@ -80,17 +80,6 @@ async function registerDevice(secret) {
 }
 
 
-// 更新设备地址
-async function updateDevAddress(secret,address) {
-  await redisClient.hset(`device:${secret}`,'address',address)
-  return true
-}
-
-// 通过密钥获取地址
-async function getAddressBySecret(secret) {
-  return await redisClient.hget(`device:${secret}`, 'address')
-}
-
 // 修改设备
 async function changeDevice(type, user, secret, name) {
   // 设备未登记过，无法绑定
@@ -230,6 +219,4 @@ module.exports = {
   public,
   manage,
   registerDevice,
-  getAddressBySecret,
-  updateDevAddress
 }
