@@ -22,9 +22,9 @@ function keepConnect() {
 }
 
 // 清除连接
-function clearConnect(socket) {
+function clearConnect(secret) {
   for (const key in webSockets) {
-    if (webSockets[key] === socket) {
+    if (key === secret) {
       delete webSockets[key]
     }
   }
@@ -68,7 +68,7 @@ webSocketServer.on('connection', (socket, request) => {
   // WebSocket 连接关闭
   socket.on('close', (code, reason) => {
     // console.log(JSON.stringify(code), reason)
-    clearConnect(socket)
+    clearConnect(socket.secret)
     console.log(`[主进程]：【WebSocket】连接关闭`)
     // 通知主进程删除当前连接
     // process.send({ id: worker.id, type: 'WebSocket' })

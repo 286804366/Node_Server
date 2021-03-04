@@ -24,6 +24,15 @@ const invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
 // data buf
 const dataBuffer = Buffer.from(Uint8Array.of(123)) // {
 
+// 清除连接
+function clearConnect(secret) {
+  for (const key in tcpSockets) {
+    if (key === secret) {
+      delete tcpSockets[key]
+    }
+  }
+}
+
 // 创建 tcp 服务器
 let tcpServer = tcp.createServer()
 
@@ -66,6 +75,7 @@ tcpServer.on('connection', (socket) => {
       tcpSockets[socket.secret] = socket
       // 登记设备
       Redis.registerDevice(socket.secret)
+      console.log(11)
     } else {
       // 未检测到有客户端连接，则无需处理转发图像数据
       if (!tcpSockets[socket.secret]) return
@@ -90,11 +100,7 @@ tcpServer.on('connection', (socket) => {
   })
   // 连接关闭
   socket.on('close', (err) => {
-    for (const key in tcpSockets) {
-      if (tcpSockets[key] === socket) {
-        delete tcpSockets[key]
-      }
-    }
+    clearConnect(socket.secret)
     if (err) {
       console.log(
         `[主进程]：远程客户端 ${address}:${port} [发生传输错误关闭连接]`
