@@ -25,9 +25,9 @@ const invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
 const dataBuffer = Buffer.from(Uint8Array.of(123)) // {
 
 // 清除连接
-function clearConnect(secret) {
+function clearConnect(address) {
   for (const key in tcpSockets) {
-    if (key === secret) {
+    if (key === address) {
       delete tcpSockets[key]
     }
   }
@@ -66,19 +66,18 @@ tcpServer.on('connection', (socket) => {
   // tcp 服务器绑定端口，并开始监听
   socket.on('data', (msg) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
-    // 串口5发送到服务器数据
+    // 串口5发送到服务器数据，用于注册设备
     if (msg.indexOf(dataBuffer) === 0) {
       const car_data = JSON.parse(msg.toString())
-      // 数据库保存设备，以设备密钥为键，并记录创建时间
-      socket.secret = car_data.car_secret
-      // 标记连接
-      tcpSockets[socket.secret] = socket
+      socket.connectAddress = `${address}:${port}`
+      tcpSockets[socket.connectAddress] = socket
       // 登记设备
-      Redis.registerDevice(socket.secret)
-      console.log(11)
+      Redis.registerDevice(car_data.car_secret)
+      // 更新设备地址
+      Redis.updateDevAddress(car_data.car_secret, `${address}:${port}`)
     } else {
       // 未检测到有客户端连接，则无需处理转发图像数据
-      if (!tcpSockets[socket.secret]) return
+      if (!Object.keys(tcpSockets).length) return
       // 处理jpg数据流，还原成帧图像流
       handleImgData(socket.secret, msg)
     }
@@ -100,7 +99,7 @@ tcpServer.on('connection', (socket) => {
   })
   // 连接关闭
   socket.on('close', (err) => {
-    clearConnect(socket.secret)
+    clearConnect(socket.connectAddress)
     if (err) {
       console.log(
         `[主进程]：远程客户端 ${address}:${port} [发生传输错误关闭连接]`
@@ -229,8 +228,11 @@ function handleImgData(secret, msg) {
 
 // 通过tcp发送数据给设备
 function sendDataByTCP(secret, data) {
-  if (tcpSockets[secret]) {
-    tcpSockets[secret].write(data)
+  if (hasTCPConnect()) {
+    const address = Redis.getAddressBySecret(secret)
+    if (address) {
+      tcpSockets[address].write(data)
+    }
   }
 }
 
