@@ -132,7 +132,7 @@ async function modify(type, user, secret, data) {
       case 'resetCloudControl':
         await redisClient.hset(`device:${secret}`, type, data)
         break
-      case 'data':
+      case 'sync':
         await redisClient.hset(`device:${secret}`, type, data.join())
         break
       case 'default':
