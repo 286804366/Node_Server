@@ -75,9 +75,10 @@ module.exports = (router) => {
   // 更新小车固件
   router.post('/upload/:type', async (ctx, next) => {
     const files = ctx.request.files
-    if (files.file.path) {
+    const body = ctx.request.body
+    if (files.file.path&&body.secret) {
       fs.readFile(files.file.path, (err, chunk) => {
-        sendDataByTCP(chunk)
+        sendDataByTCP(body.secret,chunk)
       })
     }
     ctx.body = {
