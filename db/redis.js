@@ -65,43 +65,41 @@ async function checkDevice(user, secret) {
 
 // 校验设备是否已注册过
 async function checkDeviceRegister(secret) {
-    return await redisClient.hexists(`device:${secret}`, 'exists')
+  return await redisClient.hexists(`device:${secret}`, 'exists')
 }
 
 // 修改设备
 async function changeDevice(user, secret, type, name) {
   // 设备未登记过，无法绑定
-  if(!await checkDeviceRegister(secret)) return false
-
-  let deviceList = await redisClient.hget(user, 'deviceList')
+  if (!(await checkDeviceRegister(secret))) return false
   let flag
-  if (deviceList) {
-    deviceList = JSON.parse(deviceList) || []
-    for (let i = 0; i < deviceList.length; i++) {
-      if (type === 'delete' && deviceList[i].secret === secret) {
-        deviceList.splice(i, 1)
+  // 不存在设备列表则创建
+  await redisClient.hsetnx(user, 'deviceList', JSON.stringify([]))
+  const deviceList = await redisClient.hget(user, 'deviceList')
+  deviceList = JSON.parse(deviceList) || []
+  for (let i = 0; i < deviceList.length; i++) {
+    if (type === 'delete' && deviceList[i].secret === secret) {
+      deviceList.splice(i, 1)
+      flag = 1
+      break
+    } else if (type === 'edit') {
+      if (deviceList[i].name === name || deviceList[i].secret === secret) {
+        deviceList[i].name = name
+        deviceList[i].secret = secret || deviceList[i].secret
         flag = 1
         break
-      } else if (type === 'edit') {
-        if (deviceList[i].name === name || deviceList[i].secret === secret) {
-          deviceList[i].name = name
-          deviceList[i].secret = secret || deviceList[i].secret
-          flag = 1
-          break
-        }
       }
     }
-    // 未处理，则新增
-    if (!flag) {
-      deviceList.push({
-        name: name,
-        secret: secret,
-      })
-    }
-    await redisClient.hset(user, `deviceList`, JSON.stringify(deviceList))
-    return await redisClient.hget(user, `deviceList`)
   }
-  return false
+  // 未处理，则新增
+  if (!flag) {
+    deviceList.push({
+      name: name,
+      secret: secret,
+    })
+  }
+  await redisClient.hset(user, `deviceList`, JSON.stringify(deviceList))
+  return await redisClient.hget(user, `deviceList`)
 }
 
 // 通用修改设备属性
@@ -146,16 +144,15 @@ async function public(user, field) {
 }
 
 // 设备管理
-async function manage(user, secret, field, name) {
-  switch (field) {
+async function manage(user, secret, type, name) {
+  switch (type) {
     case 'delete':
     case 'edit':
-      return await changeDevice(user, secret, field, name)
+      return await changeDevice(user, secret, type, name)
     default:
       return false
   }
 }
-
 
 /* 登录注册数据库操作 */
 // 校验用户存在
