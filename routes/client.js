@@ -10,51 +10,13 @@ const jwt = require('jsonwebtoken')
 // 盐
 const config = require('../config/config')
 
-// 通用修改设备属性
-async function modify(type, user, secret, data) {
-  switch (type) {
-    case 'data':
-    case 'baudRate':
-    case 'default':
-    case 'connectMqtt':
-    case 'connectCloudControl':
-    case 'entryBootloader':
-    case 'resetMqtt':
-    case 'resetCloudControl':
-      return await Redis.modify(type, user, secret, data)
-    default:
-      return false
-  }
-}
-
-// 通用获取设备属性
-async function get(type, user, device) {
-  switch (type) {
-    case 'sync':
-    case 'default':
-      return await Redis.get(type, user, device)
-    default:
-      return false
-  }
-}
-
-// 通用获取公共属性
-async function public(type, user) {
-  switch (type) {
-    case 'deviceList':
-      return await Redis.public(type, user)
-    default:
-      return false
-  }
-}
-
 module.exports = (router) => {
   // 通用修改设备属性
   router.post('/modify/:type', async (ctx, next) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
     if (body.user && body.secret) {
-      if (await modify(type, body.user, body.secret, body.data)) {
+      if (await Redis.modify(type, body.user, body.secret, body.data)) {
         return (ctx.body = {
           state: 0,
           message: '保存成功',
@@ -90,8 +52,8 @@ module.exports = (router) => {
   router.post('/get/:type', async (ctx, next) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
-    if (body.user && body.device) {
-      const res = await get(type, body.user, body.device)
+    if (body.user && body.secret) {
+      const res = await Redis.get(type, body.user, body.secret)
       if (res) {
         return (ctx.body = {
           state: 0,
@@ -111,7 +73,7 @@ module.exports = (router) => {
     const body = ctx.request.body
     const type = ctx.request.params.type
     if (body.user) {
-      const res = await public(type, body.user)
+      const res = await Redis.public(type, body.user)
       if (res) {
         return (ctx.body = {
           state: 0,

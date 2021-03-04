@@ -143,10 +143,9 @@ async function modify(type, user, secret, data) {
 }
 
 // 通用获取设备属性
-async function get(type, user, device) {
+async function get(type, user, secret) {
   // 用户设备 device:{secret}
-  const secret = checkDevice(user, device)
-  if (secret) {
+  if (checkDevice(user, secret)) {
     return await redisClient.hget(`device:${secret}`, type)
   }
   return false
