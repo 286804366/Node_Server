@@ -75,7 +75,7 @@ async function changeDevice(user, secret, type, name) {
   let flag
   // 不存在设备列表则创建
   await redisClient.hsetnx(user, 'deviceList', JSON.stringify([]))
-  const deviceList = await redisClient.hget(user, 'deviceList')
+  let deviceList = await redisClient.hget(user, 'deviceList')
   deviceList = JSON.parse(deviceList) || []
   for (let i = 0; i < deviceList.length; i++) {
     if (type === 'delete' && deviceList[i].secret === secret) {
