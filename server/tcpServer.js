@@ -74,9 +74,9 @@ tcpServer.on('connection', (socket) => {
       tcpSockets[socket.secret] = socket
       // 登记设备
       Redis.registerDevice(car_data.car_secret)
-      // console.log(socket.connectAddress);
-      // 更新设备地址
-      // Redis.updateDevAddress(car_data.car_secret, `${address}:${port}`)
+      const data = { type: 'connect', data: { controlIsConnected: true } }
+      // 推送数据到前端
+      sendDataByWebSocket(socket.secret, JSON.stringify(data))
     } else {
       // 未检测到有客户端连接，则无需处理转发图像数据
       if (!tcpSockets[socket.secret]) return
@@ -230,15 +230,15 @@ function handleImgData(secret, msg) {
 
 // 通过tcp发送数据给设备
 function sendDataByTCP(secret, data, body) {
-  console.log(Object.keys(tcpSockets));
+  // console.log(Object.keys(tcpSockets));
   if (hasTCPConnect() && tcpSockets[secret]) {
     // 节流中
     if (tcpSockets[secret].isDebounce) return false
     // 发送指令
-    console.log(data);
+    console.log(data)
     tcpSockets[secret].write(data)
     // 发送指令节流
-    if (body&&body.debounce) {
+    if (body && body.debounce) {
       tcpSockets[secret].isDebounce = true
       setTimeout(() => {
         if (tcpSockets[secret]) {
