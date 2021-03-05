@@ -124,7 +124,6 @@ async function modify(type, user, secret, data) {
   secret = await checkDevice(user, secret)
   if (secret) {
     switch (type) {
-      case 'baudRate':
       case 'connectMqtt':
       case 'connectCloudControl':
       case 'entryBootloader':
@@ -171,6 +170,7 @@ async function manage(type, user, secret, name) {
       return false
   }
 }
+
 
 /* 登录注册数据库操作 */
 // 校验用户存在

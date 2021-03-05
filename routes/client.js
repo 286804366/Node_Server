@@ -109,6 +109,28 @@ module.exports = (router) => {
     }
   })
 
+  // 直接执行指令
+  router.post('/command/:type', async (ctx, next) => {
+    const body = ctx.request.body
+    const type = ctx.request.params.type
+    const data = {[type]:body.data}
+    // 此 secret 为设备密钥
+    if (body.user && body.secret) {
+      // 发送指令到设备
+      if (sendDataByTCP(body.secret,`@@${JSON.stringify(data)}$$`)) {
+        return (ctx.body = {
+          state: 0,
+          message: '操作成功',
+          data: res,
+        })
+      }
+    }
+    ctx.body = {
+      state: 1,
+      message: '操作失败',
+    }
+  })
+
   /* 账号相关路由 */
 
   // 注册账号
