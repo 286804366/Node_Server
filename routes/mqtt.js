@@ -157,7 +157,7 @@ module.exports = (router) => {
     }
 
     // 尝试发送指令，如果正在节流中则返回false
-    if(!sendDataByTCP(body.secret,`@@@@@@${JSON.stringify(body.data)}$`),body){
+    if(!sendDataByTCP(body.secret,`@@@@${JSON.stringify(body.data)}$`),body){
       return (ctx.body = 'debounce')
     }
 
