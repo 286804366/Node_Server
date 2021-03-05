@@ -230,6 +230,7 @@ function handleImgData(secret, msg) {
 
 // 通过tcp发送数据给设备
 function sendDataByTCP(secret, data, body) {
+  console.log(Object.keys(tcpSockets));
   if (hasTCPConnect() && tcpSockets[secret]) {
     // 节流中
     if (tcpSockets[secret].isDebounce) return false
