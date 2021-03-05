@@ -236,7 +236,7 @@ function sendDataByTCP(secret, data, body) {
     // 发送指令
     tcpSockets[secret].write(data)
     // 发送指令节流
-    if (body.debounce) {
+    if (body&&body.debounce) {
       tcpSockets[secret].isDebounce = true
       setTimeout(() => {
         if (tcpSockets[secret]) {
