@@ -117,7 +117,7 @@ module.exports = (router) => {
     // 此 secret 为设备密钥
     if (body.user && body.secret) {
       // 发送指令到设备
-      if (sendDataByTCP(body.secret,`@@${JSON.stringify(data)}$$`)) {
+      if (sendDataByTCP(body.secret,`@@@@@${JSON.stringify(data)}$$$$$`)) {
         return (ctx.body = {
           state: 0,
           message: '操作成功',
