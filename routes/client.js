@@ -121,7 +121,6 @@ module.exports = (router) => {
         return (ctx.body = {
           state: 0,
           message: '操作成功',
-          data: res,
         })
       }
     }
