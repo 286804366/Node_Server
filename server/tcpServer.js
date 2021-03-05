@@ -234,6 +234,7 @@ function sendDataByTCP(secret, data, body) {
     // 节流中
     if (tcpSockets[secret].isDebounce) return false
     // 发送指令
+    console.log(data);
     tcpSockets[secret].write(data)
     // 发送指令节流
     if (body&&body.debounce) {
