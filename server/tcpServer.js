@@ -21,8 +21,8 @@ const startBuffer = Buffer.from(Uint8Array.of(255, 216))
 const endBuffer = Buffer.from(Uint8Array.of(255, 217))
 // invalid buf
 const invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
-// data buf
-const dataBuffer = Buffer.from(Uint8Array.of(123)) // {
+// data buf <Buffer 7b 22 63 61 72 5f 73 65 63 72 65 74 22>
+const dataBuffer = Buffer.from(Uint8Array.of(123,34,99,97,114,95,115,101,99,114,101,116,34)) // {
 
 // 清除连接
 function clearConnect(secret) {
