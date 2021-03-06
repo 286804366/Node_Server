@@ -72,10 +72,10 @@ tcpServer.on('connection', (socket) => {
     if (msg.indexOf(dataBuffer) === 0) {
       let str = msg.toString()
       const end = str.indexOf('}')
-      if (end == -1) return
+      if (end === -1) return
       str = str.slice(0, end + 1)
       console.log(str)
-      const car_data = JSON.parse(JSON.parse(str))
+      const car_data = JSON.parse(str)
       // 记录设备密钥关联连接
       socket.secret = car_data.car_secret
       tcpSockets[socket.secret] = socket
