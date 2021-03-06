@@ -22,7 +22,9 @@ const endBuffer = Buffer.from(Uint8Array.of(255, 217))
 // invalid buf
 const invalidBuffer = Buffer.from(Uint8Array.of(0, 0))
 // data buf <Buffer 7b 22 63 61 72 5f 73 65 63 72 65 74 22>
-const dataBuffer = Buffer.from(Uint8Array.of(123,34,99,97,114,95,115,101,99,114,101,116,34)) // {
+const dataBuffer = Buffer.from(
+  Uint8Array.of(123, 34, 99, 97, 114, 95, 115, 101, 99, 114, 101, 116, 34)
+) // {
 
 // 清除连接
 function clearConnect(secret) {
@@ -68,7 +70,12 @@ tcpServer.on('connection', (socket) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 串口5发送到服务器数据，用于注册设备
     if (msg.indexOf(dataBuffer) === 0) {
-      const car_data = JSON.parse(msg.toString())
+      let str = msg.toString()
+      const end = str.indexOf('}')
+      if (end == -1) return
+      str = str.slice(0, end + 1)
+      console.log(str)
+      const car_data = JSON.parse(JSON.parse(str))
       // 记录设备密钥关联连接
       socket.secret = car_data.car_secret
       tcpSockets[socket.secret] = socket
