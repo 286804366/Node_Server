@@ -71,9 +71,10 @@ tcpServer.on('connection', (socket) => {
   socket.on('data', (msg) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 类型数据
+    console.log(msg.toString())
     if(msg.indexOf(typeBuffer) === 0){
       let str = msg.toString()
-      console.log(str)
+      console.log(msg.toString())
       const end = str.indexOf('}')
       if (end === -1) return
       str = str.slice(0, end + 1)
