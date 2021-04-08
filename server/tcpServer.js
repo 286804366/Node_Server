@@ -26,7 +26,8 @@ const dataBuffer = Buffer.from(
   Uint8Array.of(123, 34, 99, 97, 114, 95, 115, 101, 99, 114, 101, 116, 34)
 ) // {"car_secret"
 
-const typeBuffer = Buffer.from('{"type":') // {"type":
+// <Buffer 7b 22 74 79 70 65 22 3a>
+const typeBuffer = Buffer.from(Uint8Array.of(123, 34, 116, 121, 112, 101, 34)) // {"type"
 
 // 清除连接
 function clearConnect(secret) {
@@ -71,13 +72,12 @@ tcpServer.on('connection', (socket) => {
   socket.on('data', (msg) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 类型数据
-    console.log(msg.toString())
     if(msg.indexOf(typeBuffer) === 0){
       let str = msg.toString()
-      console.log(msg.toString())
       const end = str.indexOf('}')
       if (end === -1) return
       str = str.slice(0, end + 1)
+      console.log(msg.toString())
     }else if (msg.indexOf(dataBuffer) === 0) {
       // 串口5发送到服务器数据，用于注册设备
       let str = msg.toString()
