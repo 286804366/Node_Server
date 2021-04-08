@@ -28,7 +28,7 @@ const dataBuffer = Buffer.from(
 
 // <Buffer 7b 22 74 79 70 65 22 3a>
 const typeBuffer = Buffer.from(Uint8Array.of(123, 34, 116, 121, 112, 101, 34)) // {"type"
-console.log(typeBuffer.toString());
+// console.log(dataBuffer.toString());
 // 清除连接
 function clearConnect(secret) {
   for (const key in tcpSockets) {
@@ -72,7 +72,7 @@ tcpServer.on('connection', (socket) => {
   socket.on('data', (msg) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 类型数据
-    console.log(msg.toString(),msg.indexOf(typeBuffer))
+    console.log(msg.toString(),msg.indexOf(typeBuffer),msg)
     if(msg.indexOf(typeBuffer) === 0){
       console.log(msg.toString())
       let str = msg.toString()
