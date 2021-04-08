@@ -73,10 +73,10 @@ tcpServer.on('connection', (socket) => {
     // 类型数据
     if(msg.indexOf(typeBuffer) === 0){
       let str = msg.toString()
+      console.log(str)
       const end = str.indexOf('}')
       if (end === -1) return
       str = str.slice(0, end + 1)
-      console.log(str)
     }else if (msg.indexOf(dataBuffer) === 0) {
       // 串口5发送到服务器数据，用于注册设备
       let str = msg.toString()
