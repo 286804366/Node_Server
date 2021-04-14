@@ -26,9 +26,10 @@ const dataBuffer = Buffer.from(
   Uint8Array.of(123, 34, 99, 97, 114, 95, 115, 101, 99, 114, 101, 116, 34)
 ) // {"car_secret"
 
-// <Buffer 7b 22 74 79 70 65 22 3a>
-const typeBuffer = Buffer.from(Uint8Array.of(123, 34, 116, 121, 112, 101, 34)) // {"type"
-// console.log(dataBuffer.toString());
+// <Buffer 7b 22 74 79 70 65 22 3a>      22 7b 5c 22 74 79 70 65 5c 22 3a
+// const typeBuffer = Buffer.from(Uint8Array.of(123, 34, 116, 121, 112, 101, 34)) // {"type"
+const typeBuffer = Buffer.from(Uint8Array.of(34, 132, 92, 34, 116, 121, 112, 101, 92, 34, 58)) // {"type"
+console.log(typeBuffer.toString());
 // 清除连接
 function clearConnect(secret) {
   for (const key in tcpSockets) {
