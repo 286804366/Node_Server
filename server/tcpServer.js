@@ -29,7 +29,7 @@ const dataBuffer = Buffer.from(
 // <Buffer 7b 22 74 79 70 65 22 3a>      22 7b 5c 22 74 79 70 65 5c 22 3a
 // const typeBuffer = Buffer.from(Uint8Array.of(123, 34, 116, 121, 112, 101, 34)) // {"type"
 const typeBuffer = Buffer.from(Uint8Array.of(34, 132, 92, 34, 116, 121, 112, 101, 92, 34, 58)) // {"type"
-console.log(typeBuffer.toString());
+// console.log(typeBuffer.toString());
 // 清除连接
 function clearConnect(secret) {
   for (const key in tcpSockets) {
@@ -73,14 +73,14 @@ tcpServer.on('connection', (socket) => {
   socket.on('data', (msg) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 类型数据
-    console.log(msg.toString(),msg.indexOf(typeBuffer),msg)
+    // console.log(msg.toString(),msg.indexOf(typeBuffer),msg)
     if(msg.indexOf(typeBuffer) === 0){
-      console.log(msg.toString())
+      // console.log(msg.toString())
       let str = msg.toString()
       const end = str.indexOf('}')
       if (end === -1) return
       str = str.slice(0, end + 1)
-      console.log(msg.toString())
+      // console.log(msg.toString())
     }else if (msg.indexOf(dataBuffer) === 0) {
       // 串口5发送到服务器数据，用于注册设备
       let str = msg.toString()
