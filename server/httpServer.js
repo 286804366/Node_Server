@@ -33,7 +33,7 @@ app
   )
   .use(bodyParser())
   .use(staticFiles(path.resolve(__dirname, '../iotc/')))
-  .use(auth)
+  // .use(auth)
   .use(router.routes())
   .use(router.allowedMethods())
   .use(notFind)
