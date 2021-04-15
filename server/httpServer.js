@@ -32,7 +32,7 @@ app
     })
   )
   .use(bodyParser())
-  .use(staticFiles('https://multer-1258613188.file.myqcloud.com/iot/assets/'))
+  .use(staticFiles(path.resolve(__dirname, '../iotc/')))
   .use(auth)
   .use(router.routes())
   .use(router.allowedMethods())
