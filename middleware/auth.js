@@ -12,6 +12,7 @@ module.exports = async (ctx, next) => {
   }
   // 不需要token校验的api
   const passUrl = ['/login', '/register', '/receive','/favicon.ico']
+  console.log(ctx.request.url);
   // 公共路径
   if (passUrl.includes(ctx.request.url)) {
     return next()
