@@ -11,7 +11,7 @@ module.exports = async (ctx, next) => {
     message: '登录已过期,请重新登录',
   }
   // 不需要token校验的api
-  const passUrl = ['/login', '/register', '/receive']
+  const passUrl = ['/login', '/register', '/receive','/favicon.ico']
   // 公共路径
   if (passUrl.includes(ctx.request.url)) {
     return next()
