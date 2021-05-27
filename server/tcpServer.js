@@ -28,7 +28,9 @@ const dataBuffer = Buffer.from(
 
 // <Buffer 7b 22 74 79 70 65 22 3a>      22 7b 5c 22 74 79 70 65 5c 22 3a
 // const typeBuffer = Buffer.from(Uint8Array.of(123, 34, 116, 121, 112, 101, 34)) // {"type"
-const typeBuffer = Buffer.from(Uint8Array.of(34, 132, 92, 34, 116, 121, 112, 101, 92, 34, 58)) // {"type"
+const typeBuffer = Buffer.from(
+  Uint8Array.of(34, 132, 92, 34, 116, 121, 112, 101, 92, 34, 58)
+) // {"type"
 // console.log(typeBuffer.toString());
 // 清除连接
 function clearConnect(secret) {
@@ -74,14 +76,14 @@ tcpServer.on('connection', (socket) => {
     // console.log(`[主进程]：收到远程客户端 ${rinfo.address}:${rinfo.port} 消息`)
     // 类型数据
     // console.log(msg.toString(),msg.indexOf(typeBuffer),msg)
-    if(msg.indexOf(typeBuffer) === 0){
+    if (msg.indexOf(typeBuffer) === 0) {
       // console.log(msg.toString())
       let str = msg.toString()
       const end = str.indexOf('}')
       if (end === -1) return
       str = str.slice(0, end + 1)
       // console.log(msg.toString())
-    }else if (msg.indexOf(dataBuffer) === 0) {
+    } else if (msg.indexOf(dataBuffer) === 0) {
       // 串口5发送到服务器数据，用于注册设备
       let str = msg.toString()
       const end = str.indexOf('}')
@@ -161,7 +163,24 @@ function send(secret, msg) {
 // 处理图像函数
 function handleImgData(secret, msg) {
   let startPos = msg.indexOf(startBuffer)
-  let endPos = msg.indexOf(endBuffer)
+  let endPos = msg.lastIndexOf(endBuffer)
+
+  // 2.都存在标记
+  if (startPos !== -1 && endPos !== -1 && startPos < endPos) {
+    // 结束标记依然有效，则，找到结束标记前最近的开始标记
+    let preStartPos = startPos
+    while (startPos !== -1 && startPos < endPos) {
+      preStartPos = startPos
+      startPos = msg.indexOf(startBuffer, startPos + 4)
+    }
+    // 没找到或者在结束标记之后，都不属于本帧.重新赋值开始标记有效位置
+    startPos = preStartPos
+    // 此时都有效，并且是最佳帧
+
+    // 发送有效帧
+    send(secret, msg.slice(startPos, endPos + 4))
+  }
+  return
 
   // 1. 都没有标记
   if (startPos === -1 && endPos === -1) {
