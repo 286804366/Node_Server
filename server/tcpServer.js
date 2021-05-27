@@ -176,10 +176,10 @@ function send(secret, msg) {
   // -----------------\r\n${msg.toString('hex')}\r\n`);
 
   // 校验img
-  // if (checkImgValid(msg)) {
+  if (checkImgValid(msg)) {
     // 特权方法发送数据
     sendDataByWebSocket(secret, msg)
-  // }
+  }
 }
 
 // 处理图像函数
