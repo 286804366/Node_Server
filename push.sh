@@ -1,5 +1,5 @@
 #!/bin/sh
-cd ../
+#cd ../
 git add .
 git commit -am 'push'
 git push origin

@@ -15,6 +15,10 @@ const { tcpConfig } = require('../config/serverConfig.js')
 let tcpSockets = {}
 // 剩余buffer缓冲
 let resBuffer = Buffer.from('')
+// 上次发送长度
+let preRealLen = 0
+// 最大img数据长度误差%
+const maxImgErr = 0.1
 // start buf
 const startBuffer = Buffer.from(Uint8Array.of(255, 216))
 // end buf
@@ -32,6 +36,7 @@ const typeBuffer = Buffer.from(
   Uint8Array.of(34, 132, 92, 34, 116, 121, 112, 101, 92, 34, 58)
 ) // {"type"
 // console.log(typeBuffer.toString());
+
 // 清除连接
 function clearConnect(secret) {
   for (const key in tcpSockets) {
@@ -152,35 +157,35 @@ tcpServer.on('close', () => {
   }, tcpConfig.restartTimeout)
 })
 
+function checkImgValid(data){
+  const curLen = data.length
+  const curErr = Math.abs(curLen-preRealLen)
+
+  // 更新发送长度
+  preRealLen = curLen
+  // 误差过大
+  if(curErr>preRealLen*maxImgErr){
+    return false
+  }
+  return true
+}
+
 // 发送拦截
 function send(secret, msg) {
   // console.log(`------------------------------------------------------------------------------------
   // -----------------\r\n${msg.toString('hex')}\r\n`);
-  // 特权方法发送数据
-  sendDataByWebSocket(secret, msg)
+
+  // 校验img
+  if (checkImgValid(msg)) {
+    // 特权方法发送数据
+    sendDataByWebSocket(secret, msg)
+  }
 }
 
 // 处理图像函数
 function handleImgData(secret, msg) {
   let startPos = msg.indexOf(startBuffer)
   let endPos = msg.lastIndexOf(endBuffer)
-
-  // 2.都存在标记
-  if (startPos !== -1 && endPos !== -1 && startPos < endPos) {
-    // 结束标记依然有效，则，找到结束标记前最近的开始标记
-    let preStartPos = startPos
-    while (startPos !== -1 && startPos < endPos) {
-      preStartPos = startPos
-      startPos = msg.indexOf(startBuffer, startPos + 4)
-    }
-    // 没找到或者在结束标记之后，都不属于本帧.重新赋值开始标记有效位置
-    startPos = preStartPos
-    // 此时都有效，并且是最佳帧
-
-    // 发送有效帧
-    send(secret, msg.slice(startPos, endPos + 4))
-  }
-  return
 
   // 1. 都没有标记
   if (startPos === -1 && endPos === -1) {
