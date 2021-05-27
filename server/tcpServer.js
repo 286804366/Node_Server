@@ -18,7 +18,7 @@ let resBuffer = Buffer.from('')
 // 上次发送长度
 let preRealLen = 0
 // 最大img数据长度误差%
-const maxImgErr = 0.1
+const maxImgErr = 0.05
 // start buf
 const startBuffer = Buffer.from(Uint8Array.of(255, 216))
 // end buf
@@ -176,10 +176,10 @@ function send(secret, msg) {
   // -----------------\r\n${msg.toString('hex')}\r\n`);
 
   // 校验img
-  if (checkImgValid(msg)) {
+  // if (checkImgValid(msg)) {
     // 特权方法发送数据
     sendDataByWebSocket(secret, msg)
-  }
+  // }
 }
 
 // 处理图像函数
