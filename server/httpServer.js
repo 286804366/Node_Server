@@ -19,7 +19,7 @@ const router = require('../routes/router')
 const { httpConfig } = require('../config/serverConfig.js')
 
 process.env.domain =
-  process.env.NODE_ENV == 'production' ? 'wlw.5102it.cn' : httpConfig.host
+  process.env.NODE_ENV == 'production' ? '49.234.11.185' : httpConfig.host
 
 app
 .use(cors())
